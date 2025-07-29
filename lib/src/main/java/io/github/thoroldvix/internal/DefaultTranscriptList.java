@@ -1,8 +1,8 @@
 package io.github.thoroldvix.internal;
-
 import io.github.thoroldvix.api.Transcript;
 import io.github.thoroldvix.api.TranscriptList;
 import io.github.thoroldvix.api.TranscriptRetrievalException;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 
@@ -30,6 +30,7 @@ final class DefaultTranscriptList implements TranscriptList {
         return languageCodes.length == 0 ? new String[]{"en"} : languageCodes;
     }
 
+    @SuppressWarnings("ConstantConditions")
     private static void validateLanguageCodes(String... languageCodes) {
         for (String languageCode : languageCodes) {
             if (languageCode == null) {

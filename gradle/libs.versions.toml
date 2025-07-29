@@ -6,6 +6,7 @@ jackson = "2.17.2"
 apache-commons-text = "1.12.0"
 maven-publish = "0.29.0"
 gradle-release = "3.0.2"
+jspecify = "1.0.0"
 
 [libraries]
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
@@ -14,6 +15,7 @@ assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
 jackson-dataformat-xml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-xml", version.ref = "jackson" }
 apache-commons-text = { module = "org.apache.commons:commons-text", version.ref = "apache-commons-text" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify"}
 
 [plugins]
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }

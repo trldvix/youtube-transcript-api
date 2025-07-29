@@ -34,6 +34,7 @@ tasks.getByName<Test>("test") {
 dependencies {
     implementation(libs.jackson.dataformat.xml)
     implementation(libs.apache.commons.text)
+    implementation(libs.jspecify)
 
     testRuntimeOnly(libs.junit.jupiter.platform.launcher)
     testImplementation(libs.junit.jupiter)

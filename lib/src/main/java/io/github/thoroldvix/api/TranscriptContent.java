@@ -1,5 +1,7 @@
 package io.github.thoroldvix.api;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 
 /**
@@ -30,6 +32,7 @@ public interface TranscriptContent {
      *
      * @return A {@link List} of {@link Fragment} objects.
      */
+    @Nullable
     List<Fragment> getContent();
 
     /**

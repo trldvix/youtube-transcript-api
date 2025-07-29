@@ -7,6 +7,7 @@ import io.github.thoroldvix.api.TranscriptContent;
 import io.github.thoroldvix.api.TranscriptRetrievalException;
 import io.github.thoroldvix.internal.DefaultTranscriptContent.Fragment;
 import org.apache.commons.text.StringEscapeUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -24,16 +25,16 @@ final class TranscriptContentExtractor {
 
     private static List<Fragment> formatFragments(List<Fragment> fragments) {
         return fragments.stream()
-                .filter(TranscriptContentExtractor::isValidTranscriptFragment)
                 .map(TranscriptContentExtractor::removeHtmlTags)
                 .map(TranscriptContentExtractor::unescapeXmlTags)
                 .collect(Collectors.toList());
     }
 
     static TranscriptContent extract(String videoId, String xml) throws TranscriptRetrievalException {
-        List<Fragment> fragments = parseFragments(videoId, xml);
+        List<Fragment> fragments = parseFragments(videoId, xml).stream()
+                .filter(TranscriptContentExtractor::isValidTranscriptFragment)
+                .collect(Collectors.toList());
         List<Fragment> content = formatFragments(fragments);
-
         return new DefaultTranscriptContent(content);
     }
 
@@ -48,8 +49,10 @@ final class TranscriptContentExtractor {
         return new Fragment(text, fragment.getStart(), fragment.getDur());
     }
 
+    @SuppressWarnings("ConstantConditions")
     private static boolean isValidTranscriptFragment(Fragment fragment) {
-        return fragment.getText() != null && !fragment.getText().isBlank();
+        String text = fragment.getText();
+        return text != null && !text.isBlank();
     }
 
     private static List<Fragment> parseFragments(String videoId, String xml) throws TranscriptRetrievalException {

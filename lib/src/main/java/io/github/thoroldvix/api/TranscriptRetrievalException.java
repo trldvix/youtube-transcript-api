@@ -1,5 +1,7 @@
 package io.github.thoroldvix.api;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Exception thrown when a transcript cannot be retrieved for a specified video.
  * <p>
@@ -10,6 +12,7 @@ public class TranscriptRetrievalException extends Exception {
 
     private static final String ERROR_MESSAGE = "Could not retrieve transcript for the video: %s.\nReason: %s";
     private static final String YOUTUBE_WATCH_URL = "https://www.youtube.com/watch?v=";
+    @Nullable
     private String videoId;
 
     /**
@@ -69,6 +72,7 @@ public class TranscriptRetrievalException extends Exception {
     /**
      * @return The ID of the video for which the transcript retrieval failed.
      */
+    @Nullable
     public String getVideoId() {
         return videoId;
     }
