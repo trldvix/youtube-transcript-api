@@ -55,9 +55,9 @@ final class DefaultYoutubeClient implements YoutubeClient {
     }
 
     @Override
-    public String post(String url, String body) throws TranscriptRetrievalException {
+    public String post(String url, String json) throws TranscriptRetrievalException {
         HttpRequest request = HttpRequest.newBuilder()
-                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .POST(HttpRequest.BodyPublishers.ofString(json))
                 .uri(URI.create(url))
                 .build();
         return send(request);

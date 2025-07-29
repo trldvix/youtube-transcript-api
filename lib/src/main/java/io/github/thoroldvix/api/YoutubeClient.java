@@ -23,11 +23,11 @@ public interface YoutubeClient {
      * Sends a POST request to the specified URL and returns the response body.
      *
      * @param url The URL to which the POST request is made.
-     * @param body The body that is sent with a POST request.
+     * @param json The JSON body that is sent with a POST request.
      * @return The body of the response as a {@link String}.
      * @throws TranscriptRetrievalException If the request to YouTube fails.
      */
-    String post(String url, String body) throws TranscriptRetrievalException;
+    String post(String url, String json) throws TranscriptRetrievalException;
 
     /**
      * Sends a GET request to the specified URL and returns the response body.
