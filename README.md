@@ -60,6 +60,15 @@ implementation 'io.github.thoroldvix:youtube-transcript-api:0.3.6'
 implementation("io.github.thoroldvix:youtube-transcript-api:0.3.6")
 ```
 
+## ❗ IMPORTANT ❗
+
+YouTube has started blocking most IPs that belong to cloud providers (like AWS, Google Cloud Platform, Azure, etc.),
+which means you most likely will get access errors when deploying to any cloud solution. It is also possible that
+YouTube will block you even if you run it locally, it will happen if you make too many requests, mainly when
+using [bulk transcript retrieval](#bulk-transcript-retrieval).
+To avoid this, you will need to use rotating proxies like [Webshare](https://www.webshare.io/?referral_code=g0ylrg6pzy7f) (referral link) or similar solutions.
+You can read on how to make a library use your proxy [here](#youtubeclient-customization-and-proxy).
+
 ## 🔰 Getting Started
 
 To start using YouTube Transcript API, you need to create an instance of `YoutubeTranscriptApi` by
@@ -83,7 +92,7 @@ TranscriptList transcriptList = youtubeTranscriptApi.listTranscripts("videoId");
 
 // Iterate over a transcript list
 for(Transcript transcript : transcriptList){
-        System.out.println(transcript);
+    System.out.println(transcript);
 }
 
 // Find transcript in specific language
@@ -321,12 +330,13 @@ YoutubeTranscriptApi youtubeTranscriptApi = TranscriptApiFactory.createWithClien
 ```
 
 ### Cookies
-
-Some videos are age-restricted, so this module won't be able to access those videos without some sort of authentication.
+Some videos are age-restricted, so this library won't be able to access those videos without some sort of authentication.
 Unfortunately, some recent changes to the YouTube API have broken the current implementation of cookie-based
 authentication, so this feature is currently not available.
 
 ### Bulk Transcript Retrieval
+
+#### ❗You will most likely get [IP blocked](#-important-) by YouTube if you use this❗
 
 There are a few methods for bulk transcript retrieval in `YoutubeTranscriptApi`
 
@@ -418,7 +428,8 @@ undocumented API URL embedded within its HTML. This JSON looks like this:
 }
 ```
 
-Before you could directly extract this JSON from video page HTML and call extracted API URL, but YouTube fixed this by not allowing
+Before you could directly extract this JSON from video page HTML and call extracted API URL, but YouTube fixed this by
+not allowing
 requests to the URL that is embedded in this JSON,
 but there is a workaround. Each video page also contains an INNERTUBE_API_KEY field, which can be used to access
 internal YouTube API. Because of this you can make POST request to this URL
@@ -435,6 +446,7 @@ internal YouTube API. Because of this you can make POST request to this URL
   "videoId": "dQw4w9WgXcQ"
 }
 ```
+
 To retrieve JSON that is similar to the JSON contained in the video page HTML. Extracted API URL is then
 called to retrieve the content of the transcript,
 it has an XML format and looks like this
