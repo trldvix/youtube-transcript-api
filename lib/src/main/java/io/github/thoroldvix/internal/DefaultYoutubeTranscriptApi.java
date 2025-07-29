@@ -5,22 +5,21 @@ import io.github.thoroldvix.api.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
  * Default implementation of {@link YoutubeTranscriptApi}.
  */
 final class DefaultYoutubeTranscriptApi implements YoutubeTranscriptApi {
-    private static final String YOUTUBE_WATCH_URL = "https://www.youtube.com/watch?v=";
+
     private final YoutubeApi youtubeApi;
-    private final YoutubeClient client;
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     DefaultYoutubeTranscriptApi(YoutubeClient client) {
         this.youtubeApi = new YoutubeApi(client);
-        this.client = client;
     }
 
     private static TranscriptContent transcriptContentSupplier(TranscriptRequest request, String[] languageCodes, TranscriptList transcriptList) {
@@ -31,6 +30,7 @@ final class DefaultYoutubeTranscriptApi implements YoutubeTranscriptApi {
                 throw new CompletionException(e);
             }
         }
+
         return null;
     }
 
@@ -54,23 +54,25 @@ final class DefaultYoutubeTranscriptApi implements YoutubeTranscriptApi {
                 .fetch();
     }
 
-    private String fetchVideoPage(String videoId) throws TranscriptRetrievalException {
-        String videoPageHtml = client.get(YOUTUBE_WATCH_URL + videoId, Map.of("Accept-Language", "en-US"));
-        String consentPagePattern = "action=\"https://consent.youtube.com/s\"";
-
-        if (videoPageHtml.contains(consentPagePattern)) {
-            throw new TranscriptRetrievalException("Video is age restricted");
-        }
-
-        return videoPageHtml;
-    }
-
     @Override
     public TranscriptList listTranscripts(String videoId) throws TranscriptRetrievalException {
-        validateVideoId(videoId);
-        TranscriptListExtractor extractor = new TranscriptListExtractor(client, videoId);
-        String videoPageHtml = fetchVideoPage(videoId);
-        return extractor.extract(videoPageHtml);
+        if (!videoId.matches("[a-zA-Z0-9_-]{11}")) {
+            throw new IllegalArgumentException("Invalid video id: " + videoId);
+        }
+        String videoPageHtml = youtubeApi.getVideoPage(videoId);
+        String innertubeApiKey = extractInnertubeApiKey(videoId, videoPageHtml);
+        String innertubeData = youtubeApi.getInnertubeData(videoId, innertubeApiKey);
+        return TranscriptListExtractor.extract(innertubeData, videoId, youtubeApi);
+    }
+
+    private String extractInnertubeApiKey(String videoId, String videoPageHtml) throws TranscriptRetrievalException {
+        Pattern pattern = Pattern.compile("\"INNERTUBE_API_KEY\"\\s*:\\s*\"([^\"]+)\"");
+        Matcher matcher = pattern.matcher(videoPageHtml);
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            throw new TranscriptRetrievalException(videoId, "INNERTUBE_API_KEY not found in video page HTML.");
+        }
     }
 
     @Override
@@ -79,7 +81,7 @@ final class DefaultYoutubeTranscriptApi implements YoutubeTranscriptApi {
         List<String> videoIds = youtubeApi.getVideoIds(playlistId, request.getApiKey());
 
         List<CompletableFuture<Void>> futures = videoIds.stream()
-                .map(videoId -> CompletableFuture.supplyAsync(() -> transcriptListSupplier(request, videoId))
+                .map(videoId -> CompletableFuture.supplyAsync(() -> transcriptListSupplier(request, videoId), executorService)
                         .thenAccept(transcriptList -> {
                             if (transcriptList != null) {
                                 transcriptLists.put(transcriptList.getVideoId(), transcriptList);
@@ -97,7 +99,7 @@ final class DefaultYoutubeTranscriptApi implements YoutubeTranscriptApi {
         Map<String, TranscriptContent> transcripts = new ConcurrentHashMap<>();
 
         List<CompletableFuture<Void>> futures = transcriptLists.values().stream()
-                .map(transcriptList -> CompletableFuture.supplyAsync(() -> transcriptContentSupplier(request, languageCodes, transcriptList))
+                .map(transcriptList -> CompletableFuture.supplyAsync(() -> transcriptContentSupplier(request, languageCodes, transcriptList), executorService)
                         .thenAccept(transcriptContent -> {
                             if (transcriptContent != null) {
                                 transcripts.put(transcriptList.getVideoId(), transcriptContent);
@@ -119,12 +121,6 @@ final class DefaultYoutubeTranscriptApi implements YoutubeTranscriptApi {
     public Map<String, TranscriptContent> getTranscriptsForChannel(String channelName, TranscriptRequest request, String... languageCodes) throws TranscriptRetrievalException {
         String channelPlaylistId = youtubeApi.getChannelPlaylistId(channelName, request.getApiKey());
         return getTranscriptsForPlaylist(channelPlaylistId, request, languageCodes);
-    }
-
-    private void validateVideoId(String videoId) {
-        if (!videoId.matches("[a-zA-Z0-9_-]{11}")) {
-            throw new IllegalArgumentException("Invalid video id: " + videoId);
-        }
     }
 
     private TranscriptList transcriptListSupplier(TranscriptRequest request, String videoId) {

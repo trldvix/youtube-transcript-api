@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.thoroldvix.api.Transcript;
 import io.github.thoroldvix.api.TranscriptList;
 import io.github.thoroldvix.api.TranscriptRetrievalException;
-import io.github.thoroldvix.api.YoutubeClient;
 
 import java.util.Collections;
 import java.util.Map;
@@ -19,103 +18,102 @@ import java.util.stream.StreamSupport;
  */
 final class TranscriptListExtractor {
 
-    private static final String TOO_MANY_REQUESTS = "YouTube is receiving too many requests from this IP and now requires solving a captcha to continue. " +
-                                                    "One of the following things can be done to work around this:\n" +
-                                                    "- Manually solve the captcha in a browser and export the cookie. " +
-                                                    "Read here how to use that cookie with " +
-                                                    "youtube-transcript-api: https://github.com/thoroldvix/youtube-transcript-api#cookies\n" +
-                                                    "- Use a different IP address\n" +
-                                                    "- Wait until the ban on your IP has been lifted";
-    private static final String TRANSCRIPTS_DISABLED = "Transcripts are disabled for this video.";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final YoutubeClient client;
-    private final String videoId;
-
-    TranscriptListExtractor(YoutubeClient client, String videoId) {
-        this.client = client;
-        this.videoId = videoId;
+    private TranscriptListExtractor() {
     }
 
-    TranscriptList extract(String videoPageHtml) throws TranscriptRetrievalException {
-        String json = getJsonFromHtml(videoPageHtml, videoId);
-        JsonNode parsedJson = parseJson(json);
-        checkIfTranscriptsDisabled(parsedJson);
-        return createTranscriptList(parsedJson);
+    static TranscriptList extract(String innertubeData, String videoId, YoutubeApi youtubeApi) throws TranscriptRetrievalException {
+        JsonNode captionsJson = extractCaptionsJson(innertubeData, videoId);
+        Map<String, Transcript> manualTranscripts = extractManualTranscripts(youtubeApi, captionsJson, videoId);
+        Map<String, Transcript> generatedTranscripts = extractGeneratedTranscripts(youtubeApi, captionsJson, videoId);
+        Map<String, String> translationLanguages = extractTranslationLanguages(captionsJson);
+        return new DefaultTranscriptList(videoId, manualTranscripts, generatedTranscripts, translationLanguages);
     }
 
-    private static String getJsonFromHtml(String videoPageHtml, String videoId) throws TranscriptRetrievalException {
-        String[] splitHtml = videoPageHtml.split("\"captions\":");
-        checkIfHtmlContainsJson(videoPageHtml, videoId, splitHtml);
-        return splitHtml[1].split(",\"videoDetails")[0].replace("\n", "");
-    }
-
-    private static void checkIfHtmlContainsJson(String videoPageHtml, String videoId, String[] splitHtml) throws TranscriptRetrievalException {
-        //no captions json in html
-        if (splitHtml.length <= 1) {
-            //recaptcha
-            if (videoPageHtml.contains("class=\"g-recaptcha\"")) {
-                throw new TranscriptRetrievalException(videoId, TOO_MANY_REQUESTS);
-            }
-            //non playable
-            if (!videoPageHtml.contains("\"playabilityStatus\":")) {
-                throw new TranscriptRetrievalException(videoId, "This video is no longer available.");
-            }
-            throw new TranscriptRetrievalException(videoId, TRANSCRIPTS_DISABLED);
-        }
-    }
-
-    private JsonNode parseJson(String json) throws TranscriptRetrievalException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode parsedJson;
+    private static JsonNode extractCaptionsJson(String innertubeData, String videoId) throws TranscriptRetrievalException {
+        JsonNode innertubeJson;
         try {
-            parsedJson = objectMapper.readTree(json).get("playerCaptionsTracklistRenderer");
+            innertubeJson = OBJECT_MAPPER.readTree(innertubeData);
         } catch (JsonProcessingException e) {
             throw new TranscriptRetrievalException(videoId, "Failed to parse transcript JSON.", e);
         }
-        return parsedJson;
-    }
 
-    private void checkIfTranscriptsDisabled(JsonNode parsedJson) throws TranscriptRetrievalException {
-        if (parsedJson == null) {
-            throw new TranscriptRetrievalException(videoId, TRANSCRIPTS_DISABLED);
+        if (innertubeJson == null) {
+            throw new TranscriptRetrievalException(videoId, "Failed to find captions track list.");
         }
-        if (!parsedJson.has("captionTracks")) {
-            throw new TranscriptRetrievalException(videoId, TRANSCRIPTS_DISABLED);
+
+        checkPlayabilityStatus(videoId, innertubeJson.get("playabilityStatus"));
+
+        if (!innertubeJson.has("captions")) {
+            throw new TranscriptRetrievalException(videoId, "This video does not have captions.");
+        }
+
+        JsonNode captionsJson = innertubeJson.get("captions").get("playerCaptionsTracklistRenderer");
+        if (captionsJson == null) {
+            throw new TranscriptRetrievalException(videoId, "Transcripts are disabled for this video.");
+        }
+
+        return captionsJson;
+    }
+
+    private static void checkPlayabilityStatus(String videoId, JsonNode playabilityStatusJson) throws TranscriptRetrievalException {
+        String status = playabilityStatusJson.get("status").asText();
+
+        if (status != null && !status.isBlank() && !status.equals("OK")) {
+            String reason = playabilityStatusJson.get("reason").asText();
+            if (status.equals("LOGIN_REQUIRED")) {
+                if (reason.equals("BOT_DETECTED")) {
+                    throw new TranscriptRetrievalException(videoId, "YouTube is blocking requests from your ip because it thinks you are a bot");
+                }
+                if (reason.equals("AGE_RESTRICTED")) {
+                    throw new TranscriptRetrievalException(videoId, "Video is age restricted");
+                }
+            }
+
+            if (status.equals("ERROR") && reason.equals("VIDEO_UNAVAILABLE")) {
+                throw new TranscriptRetrievalException(videoId, "This video is not available");
+            }
+
+            JsonNode runs = playabilityStatusJson
+                    .path("errorScreen")
+                    .path("playerErrorMessageRenderer")
+                    .path("subreason")
+                    .path("runs");
+
+            String detailedReason = StreamSupport.stream(runs.spliterator(), false)
+                    .map(run -> run.path("text").asText())
+                    .filter(text -> !text.isBlank())
+                    .collect(Collectors.joining(", "));
+
+            throw new TranscriptRetrievalException(videoId, "Video is unplayable." + (detailedReason.isBlank() ? "" : " Additional details: " + detailedReason));
         }
     }
 
-    private TranscriptList createTranscriptList(JsonNode jsonNode) {
-        return new DefaultTranscriptList(videoId,
-                getManualTranscripts(jsonNode),
-                getGeneratedTranscripts(jsonNode),
-                getTranslationLanguages(jsonNode)
-        );
-    }
-
-    private Map<String, String> getTranslationLanguages(JsonNode json) {
+    private static Map<String, String> extractTranslationLanguages(JsonNode json) {
         if (!json.has("translationLanguages")) {
             return Collections.emptyMap();
         }
         return StreamSupport.stream(json.get("translationLanguages").spliterator(), false)
                 .collect(Collectors.toMap(
                         jsonNode -> jsonNode.get("languageCode").asText(),
-                        jsonNode -> jsonNode.get("languageName").get("simpleText").asText()
+                        jsonNode -> jsonNode.get("languageName").get("runs").get(0).get("text").asText()
                 ));
     }
 
-    private Map<String, Transcript> getManualTranscripts(JsonNode json) {
-        return getTranscripts(json, jsonNode -> !jsonNode.has("kind"));
+    private static Map<String, Transcript> extractManualTranscripts(YoutubeApi youtubeApi, JsonNode json, String videoId) {
+        return extractTranscript(youtubeApi, json, jsonNode -> !jsonNode.has("kind"), videoId);
     }
 
-    private Map<String, Transcript> getGeneratedTranscripts(JsonNode json) {
-        return getTranscripts(json, jsonNode -> jsonNode.has("kind"));
+    private static Map<String, Transcript> extractGeneratedTranscripts(YoutubeApi youtubeApi, JsonNode json, String videoId) {
+        return extractTranscript(youtubeApi, json, jsonNode -> jsonNode.has("kind"), videoId);
     }
 
-    private Map<String, Transcript> getTranscripts(JsonNode json, Predicate<JsonNode> filter) {
-        Map<String, String> translationLanguages = getTranslationLanguages(json);
+    private static Map<String, Transcript> extractTranscript(YoutubeApi youtubeApi, JsonNode json, Predicate<JsonNode> filter, String videoId) {
+        Map<String, String> translationLanguages = extractTranslationLanguages(json);
         return StreamSupport.stream(json.get("captionTracks").spliterator(), false)
                 .filter(filter)
-                .map(jsonNode -> getTranscript(client, jsonNode, translationLanguages))
+                .map(jsonNode -> extractTranscript(youtubeApi, jsonNode, translationLanguages, videoId))
                 .collect(Collectors.toMap(
                         Transcript::getLanguageCode,
                         transcript -> transcript,
@@ -123,12 +121,12 @@ final class TranscriptListExtractor {
                 );
     }
 
-    private Transcript getTranscript(YoutubeClient client, JsonNode jsonNode, Map<String, String> translationLanguages) {
+    private static Transcript extractTranscript(YoutubeApi youtubeApi, JsonNode jsonNode, Map<String, String> translationLanguages, String videoId) {
         return new DefaultTranscript(
-                client,
+                youtubeApi,
                 videoId,
-                jsonNode.get("baseUrl").asText(),
-                jsonNode.get("name").get("simpleText").asText(),
+                jsonNode.get("baseUrl").asText().replace("&fmt=srv3", ""),
+                jsonNode.get("name").get("runs").get(0).get("text").asText(),
                 jsonNode.get("languageCode").asText(),
                 jsonNode.has("kind"),
                 translationLanguages

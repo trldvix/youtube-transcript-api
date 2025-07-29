@@ -13,7 +13,7 @@ import java.util.*;
  */
 final class DefaultTranscript implements Transcript {
 
-    private final YoutubeClient client;
+    private final YoutubeApi youtubeApi;
     private final String videoId;
     private final String apiUrl;
     private final String language;
@@ -22,14 +22,14 @@ final class DefaultTranscript implements Transcript {
     private final Map<String, String> translationLanguages;
     private final boolean isTranslatable;
 
-    DefaultTranscript(YoutubeClient client,
+    DefaultTranscript(YoutubeApi youtubeApi,
                       String videoId,
                       String apiUrl,
                       String language,
                       String languageCode,
                       boolean isGenerated,
                       Map<String, String> translationLanguages) {
-        this.client = client;
+        this.youtubeApi = youtubeApi;
         this.videoId = videoId;
         this.apiUrl = apiUrl;
         this.language = language;
@@ -41,16 +41,15 @@ final class DefaultTranscript implements Transcript {
 
     @Override
     public TranscriptContent fetch() throws TranscriptRetrievalException {
-        String transcriptXml = client.get(apiUrl, Map.of("Accept-Language", "en-US"));
-        TranscriptContentExtractor extractor = new TranscriptContentExtractor(videoId);
-        return extractor.extract(transcriptXml);
+        String transcriptXml = youtubeApi.getTranscriptContentXml(videoId, apiUrl);
+        return TranscriptContentExtractor.extract(videoId, transcriptXml);
     }
 
     @Override
     public Transcript translate(String languageCode) throws TranscriptRetrievalException {
         checkIfPossibleToTranslate(languageCode);
         return new DefaultTranscript(
-                client,
+                youtubeApi,
                 videoId,
                 createTranslationApiUrl(languageCode),
                 translationLanguages.get(languageCode),
@@ -114,7 +113,7 @@ final class DefaultTranscript implements Transcript {
         if (o == null || getClass() != o.getClass()) return false;
         DefaultTranscript that = (DefaultTranscript) o;
         return isGenerated == that.isGenerated && isTranslatable == that.isTranslatable &&
-               Objects.equals(client, that.client) && Objects.equals(videoId, that.videoId) &&
+               Objects.equals(youtubeApi, that.youtubeApi) && Objects.equals(videoId, that.videoId) &&
                Objects.equals(apiUrl, that.apiUrl) && Objects.equals(language, that.language) &&
                Objects.equals(languageCode, that.languageCode) &&
                Objects.equals(translationLanguages, that.translationLanguages);
@@ -122,7 +121,7 @@ final class DefaultTranscript implements Transcript {
 
     @Override
     public int hashCode() {
-        return Objects.hash(client, videoId, apiUrl, language, languageCode, isGenerated, translationLanguages, isTranslatable);
+        return Objects.hash(youtubeApi, videoId, apiUrl, language, languageCode, isGenerated, translationLanguages, isTranslatable);
     }
 
     @Override

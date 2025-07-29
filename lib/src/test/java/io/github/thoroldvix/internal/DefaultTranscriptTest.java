@@ -4,6 +4,7 @@ import io.github.thoroldvix.api.Transcript;
 import io.github.thoroldvix.api.TranscriptContent;
 import io.github.thoroldvix.api.TranscriptRetrievalException;
 import io.github.thoroldvix.api.YoutubeClient;
+import org.apiguardian.api.API;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,16 +21,18 @@ import static org.mockito.Mockito.when;
 
 class DefaultTranscriptTest {
 
-    private YoutubeClient youtubeClient;
+    private YoutubeApi youtubeApi;
     private Transcript transcript;
+    private static final String VIDEO_ID = "dQw4w9WgXcQ";
+    private static final String API_URL = "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ";
 
     @BeforeEach
     void setUp() {
-        youtubeClient = mock(YoutubeClient.class);
+        youtubeApi = mock(YoutubeApi.class);
         transcript = new DefaultTranscript(
-                youtubeClient,
-                "dQw4w9WgXcQ",
-                "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ",
+                youtubeApi,
+                VIDEO_ID,
+                API_URL,
                 "English",
                 "en",
                 false,
@@ -40,7 +43,7 @@ class DefaultTranscriptTest {
     @Test
     void fetchesTranscriptContent() throws Exception {
         String transcriptXml = Files.readString(Path.of("src/test/resources/transcript.xml"));
-        when(youtubeClient.get(transcript.getApiUrl(), Map.of("Accept-Language", "en-US"))).thenReturn(transcriptXml);
+        when(youtubeApi.getTranscriptContentXml(VIDEO_ID, API_URL)).thenReturn(transcriptXml);
 
         List<DefaultTranscriptContent.Fragment> expected = List.of(new DefaultTranscriptContent.Fragment("Hey, this is just a test", 0.0, 1.54),
                 new DefaultTranscriptContent.Fragment("this is not the original transcript", 1.54, 4.16),
@@ -68,9 +71,9 @@ class DefaultTranscriptTest {
     @Test
     void isTranslatableGivesCorrectResult() {
         Transcript notTranslatableTranscript = new DefaultTranscript(
-                youtubeClient,
-                "dQw4w9WgXcQ",
-                "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ",
+                youtubeApi,
+                VIDEO_ID,
+                API_URL,
                 "English",
                 "en",
                 false,
@@ -83,9 +86,9 @@ class DefaultTranscriptTest {
     @Test
     void translateTranscriptThrowsExceptionWhenNotTranslatable() {
         Transcript transcript = new DefaultTranscript(
-                youtubeClient,
-                "dQw4w9WgXcQ",
-                "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ",
+                youtubeApi,
+                VIDEO_ID,
+                API_URL,
                 "English",
                 "en",
                 false,
@@ -99,9 +102,9 @@ class DefaultTranscriptTest {
     @Test
     void toStringFormattedCorrectly() {
         Transcript transcript = new DefaultTranscript(
-                youtubeClient,
-                "dQw4w9WgXcQ",
-                "https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ",
+                youtubeApi,
+                VIDEO_ID,
+                API_URL,
                 "English",
                 "en",
                 false,
@@ -109,11 +112,11 @@ class DefaultTranscriptTest {
         );
 
         String expected = """
-                Transcript for video with id: dQw4w9WgXcQ.
+                Transcript for video with id: %s.
                 Language: English
                 Language code: en
-                API URL for retrieving content: https://www.youtube.com/api/timedtext?v=dQw4w9WgXcQ
-                Available translation languages: [af, en]""";
+                API URL for retrieving content: %s
+                Available translation languages: [af, en]""".formatted(VIDEO_ID, API_URL);
 
         assertThat(transcript.toString()).isEqualTo(expected);
     }

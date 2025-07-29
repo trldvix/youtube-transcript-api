@@ -17,11 +17,9 @@ import java.util.stream.Collectors;
  */
 final class TranscriptContentExtractor {
 
-    private final String videoId;
     private static final XmlMapper XML_MAPPER = new XmlMapper();
 
-    TranscriptContentExtractor(String videoId) {
-        this.videoId = videoId;
+    private TranscriptContentExtractor() {
     }
 
     private static List<Fragment> formatFragments(List<Fragment> fragments) {
@@ -32,8 +30,8 @@ final class TranscriptContentExtractor {
                 .collect(Collectors.toList());
     }
 
-    TranscriptContent extract(String xml) throws TranscriptRetrievalException {
-        List<Fragment> fragments = parseFragments(xml);
+    static TranscriptContent extract(String videoId, String xml) throws TranscriptRetrievalException {
+        List<Fragment> fragments = parseFragments(videoId, xml);
         List<Fragment> content = formatFragments(fragments);
 
         return new DefaultTranscriptContent(content);
@@ -54,7 +52,7 @@ final class TranscriptContentExtractor {
         return fragment.getText() != null && !fragment.getText().isBlank();
     }
 
-    private List<Fragment> parseFragments(String xml) throws TranscriptRetrievalException {
+    private static List<Fragment> parseFragments(String videoId, String xml) throws TranscriptRetrievalException {
         try {
             return XML_MAPPER.readValue(xml, new TypeReference<>() {
             });

@@ -62,7 +62,7 @@ public interface YoutubeTranscriptApi {
      * Retrieves transcript lists for all videos for the specified channel.
      *
      * @param channelName The name of the channel
-     * @param request     {@link TranscriptRequest} request object containing API key, cookies file path, and stop on error flag
+     * @param request     {@link TranscriptRequest} request object containing API key and stop on error flag
      * @return A map of video IDs to {@link TranscriptList} objects
      * @throws TranscriptRetrievalException If the retrieval of the transcript lists fails
      */
@@ -73,7 +73,7 @@ public interface YoutubeTranscriptApi {
      * Retrieves transcript content for all videos in the specified playlist.
      *
      * @param playlistId    The ID of the playlist
-     * @param request       {@link TranscriptRequest} request object containing API key, cookies file path, and stop on error flag
+     * @param request       {@link TranscriptRequest} request object containing API key and stop on error flag
      * @param languageCodes A varargs list of language codes in descending priority.
      *                      <p>
      *                      For example:
@@ -92,7 +92,7 @@ public interface YoutubeTranscriptApi {
      * Retrieves transcript content for all videos for the specified channel.
      *
      * @param channelName   The name of the channel
-     * @param request       {@link TranscriptRequest} request object containing API key, cookies file path, and stop on error flag
+     * @param request       {@link TranscriptRequest} request object containing API key and stop on error flag
      * @param languageCodes A varargs list of language codes in descending priority.
      *                      <p>
      *                      For example:

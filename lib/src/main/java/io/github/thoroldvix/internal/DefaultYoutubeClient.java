@@ -9,8 +9,6 @@ import java.util.Map;
 
 import io.github.thoroldvix.api.TranscriptRetrievalException;
 import io.github.thoroldvix.api.YoutubeClient;
-import io.github.thoroldvix.api.YtApiV3Endpoint;
-
 
 /**
  * Default implementation of {@link YoutubeClient}.
@@ -18,6 +16,7 @@ import io.github.thoroldvix.api.YtApiV3Endpoint;
 final class DefaultYoutubeClient implements YoutubeClient {
 
     private final HttpClient httpClient;
+    private static final String DEFAULT_ERROR_MESSAGE = "Request to YouTube failed.";
 
     DefaultYoutubeClient() {
         this.httpClient = HttpClient.newHttpClient();
@@ -29,52 +28,42 @@ final class DefaultYoutubeClient implements YoutubeClient {
 
     @Override
     public String get(String url, Map<String, String> headers) throws TranscriptRetrievalException {
-        String videoId = url.split("=")[1];
-        String errorMessage = "Request to YouTube failed.";
         String[] headersArray = createHeaders(headers);
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .headers(headersArray)
-                .build();
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                .uri(URI.create(url));
 
+        if (headersArray.length > 0) {
+            requestBuilder.headers(headersArray);
+        }
+
+        return send(requestBuilder.build());
+    }
+
+    private String send(HttpRequest request) throws TranscriptRetrievalException {
         HttpResponse<String> response;
         try {
             response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (IOException e) {
-            throw new TranscriptRetrievalException(videoId, errorMessage, e);
+            throw new TranscriptRetrievalException(DEFAULT_ERROR_MESSAGE, e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new TranscriptRetrievalException(videoId, errorMessage, e);
+            throw new TranscriptRetrievalException(DEFAULT_ERROR_MESSAGE, e);
         }
 
         if (response.statusCode() != 200) {
-            throw new TranscriptRetrievalException(videoId, errorMessage + " Status code: " + response.statusCode());
+            throw new TranscriptRetrievalException(DEFAULT_ERROR_MESSAGE + " Status code: " + response.statusCode());
         }
+
         return response.body();
     }
 
     @Override
-    public String get(YtApiV3Endpoint endpoint, Map<String, String> params) throws TranscriptRetrievalException {
-        String errorMessage = String.format("Request to YouTube '%s' endpoint failed.", endpoint);
+    public String post(String url, String body) throws TranscriptRetrievalException {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(endpoint.url(params)))
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .uri(URI.create(url))
                 .build();
-
-        HttpResponse<String> response;
-        try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException e) {
-            throw new TranscriptRetrievalException(errorMessage, e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new TranscriptRetrievalException(errorMessage, e);
-        }
-
-        if (response.statusCode() != 200) {
-            throw new TranscriptRetrievalException(errorMessage + " Status code: " + response.statusCode());
-        }
-
-        return response.body();
+        return send(request);
     }
 
     private String[] createHeaders(Map<String, String> headers) {
