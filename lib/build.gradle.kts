@@ -3,11 +3,11 @@ import com.vanniktech.maven.publish.SonatypeHost
 object Metadata {
     const val DESC = "Java library for retrieving YouTube transcripts. " +
             "It supports manual and automatically generated subtitles and does not use headless browser for scraping"
-    const val GROUP_ID = "io.github.thoroldvix"
+    const val GROUP_ID = "io.github.trldvix"
     const val LICENSE = "MIT"
     const val LICENSE_URL = "https://opensource.org/licenses/MIT"
-    const val GITHUB_REPO = "thoroldvix/youtube-transcript-api"
-    const val DEVELOPER_ID = "thoroldvix"
+    const val GITHUB_REPO = "trldvix/youtube-transcript-api"
+    const val DEVELOPER_ID = "trldvix"
     const val DEVELOPER_NAME = "Alexey Bobkov"
     const val DEVELOPER_EMAIL = "dignitionn@gmail.com"
 }
