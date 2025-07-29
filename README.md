@@ -9,14 +9,14 @@
 
 ### This library uses undocumented YouTube API, so it's possible that it will stop working at any time. Use at your own risk.
 
-> **Note:** If you want to use this library on Android platform, refer to
+> **Note:** If you want to use this library on an Android platform, refer to
 > [Android compatibility](#-android-compatibility).
 
 ## 📖 Introduction
 
 Java library which allows you to retrieve subtitles/transcripts for a YouTube video.
 It supports manual and automatically generated subtitles, bulk transcript retrieval for all videos in the playlist or
-on the channel and does not use headless browser for scraping.
+on the channel and does not use a headless browser for scraping.
 Inspired by [Python library](https://github.com/jdepoix/youtube-transcript-api).
 
 ## ☑️ Features
@@ -81,15 +81,15 @@ for [finding specific transcripts](#find-transcripts) by language or by type (ma
 ```java
 TranscriptList transcriptList = youtubeTranscriptApi.listTranscripts("videoId");
 
-// Iterate over transcript list
-for(Transcript transcript : transcriptList) {
+// Iterate over a transcript list
+for(Transcript transcript : transcriptList){
         System.out.println(transcript);
 }
 
 // Find transcript in specific language
 Transcript transcript = transcriptList.findTranscript("en");
 
-// Find manually created transcript
+// Find a manually created transcript
 Transcript manualyCreatedTranscript = transcriptList.findManualTranscript("en");
 
 // Find automatically generated transcript
@@ -138,11 +138,11 @@ TranscriptContent transcriptContent = youtubeTranscriptApi.listTranscripts("vide
 Given that English is the most common language, you can omit the language code, and it will default to English:
 
 ```java
-// Retrieve transcript content in english
+// Retrieve transcript content in English
 TranscriptContent transcriptContent = youtubeTranscriptApi.listTranscripts("videoId")
-        //no language code defaults to english
-        .findTranscript()
-        .fetch();
+                //no language code defaults to English
+                .findTranscript()
+                .fetch();
 // Or
 TranscriptContent transcriptContent = youtubeTranscriptApi.getTranscript("videoId");
 ```
@@ -150,6 +150,7 @@ TranscriptContent transcriptContent = youtubeTranscriptApi.getTranscript("videoI
 For bulk transcript retrieval see [Bulk Transcript Retrieval](#bulk-transcript-retrieval).
 
 ## 🤖 Android compatibility
+
 This library uses Java 11 HttpClient for making YouTube requests by default, it was done so it depends on minimal amount
 of 3rd party libraries. Since Android SDK doesn't include Java 11 HttpClient, you will have to implement
 your own `YoutubeClient` for it to work.
@@ -160,7 +161,8 @@ You can check how to do it in [YoutubeClient Customization and Proxy](#youtubecl
 
 ### Use fallback language
 
-In case if desired language is not available, instead of getting an exception you can pass some other languages that
+In case if the desired language is not available, instead of getting an exception, you can pass some other languages
+that
 will be used as a fallback.
 
 For example:
@@ -260,15 +262,14 @@ By default, `YoutubeTranscriptApi` uses Java 11 HttpClient for making requests t
 different client or use a proxy,
 you can create your own YouTube client by implementing the `YoutubeClient` interface.
 
-Here is example implementation using OkHttp:
+Here is an example implementation using OkHttp:
 
 ```java
 public class OkHttpYoutubeClient implements YoutubeClient {
-
     private final OkHttpClient client;
 
     public OkHttpYoutubeClient() {
-      this.client = new OkHttpClient();
+        this.client = new OkHttpClient();
     }
 
     @Override
@@ -278,35 +279,41 @@ public class OkHttpYoutubeClient implements YoutubeClient {
                 .url(url)
                 .build();
 
-        return sendGetRequest(request);
+        return executeRequest(request);
     }
 
     @Override
-    public String get(YtApiV3Endpoint endpoint, Map<String, String> params) throws TranscriptRetrievalException {
+    public String post(String url, String body) throws TranscriptRetrievalException {
+        RequestBody requestBody = RequestBody.create(body, MediaType.parse("application/json; charset=utf-8"));
+
         Request request = new Request.Builder()
-                .url(endpoint.url(params))
+                .url(url)
+                .post(requestBody)
                 .build();
 
-        return sendGetRequest(request);
+        return executeRequest(request);
     }
 
-    private String sendGetRequest(Request request) throws TranscriptRetrievalException {
+    private String executeRequest(Request request) throws TranscriptRetrievalException {
         try (Response response = client.newCall(request).execute()) {
             if (response.isSuccessful()) {
-                ResponseBody body = response.body();
-                if (body == null) {
+                ResponseBody responseBody = response.body();
+                if (responseBody == null) {
                     throw new TranscriptRetrievalException("Response body is null");
                 }
-                return body.string();
+                return responseBody.string();
             }
         } catch (IOException e) {
-            throw new TranscriptRetrievalException("Failed to retrieve data from YouTube", e);
+            throw new TranscriptRetrievalException("HTTP request failed", e);
         }
-        throw new TranscriptRetrievalException("Failed to retrieve data from YouTube");
+
+        throw new TranscriptRetrievalException("HTTP request failed with non-successful response");
     }
 }
 ```
-After implementing your custom `YouTubeClient` you will need to pass it to `TranscriptApiFactory` `createWithClient` method.
+
+After implementing your custom `YouTubeClient` you will need to pass it to `TranscriptApiFactory` `createWithClient`
+method.
 
 ```java
 YoutubeClient okHttpClient = new OkHttpYoutubeClient();
@@ -314,16 +321,18 @@ YoutubeTranscriptApi youtubeTranscriptApi = TranscriptApiFactory.createWithClien
 ```
 
 ### Cookies
+
 Some videos are age-restricted, so this module won't be able to access those videos without some sort of authentication.
-Unfortunately, some recent changes to the YouTube API have broken the current implementation of cookie-based authentication, so this feature is currently not available.
+Unfortunately, some recent changes to the YouTube API have broken the current implementation of cookie-based
+authentication, so this feature is currently not available.
 
 ### Bulk Transcript Retrieval
 
-There are a few methods for bulk transcript retrieval in `YoutubeTranscriptApi` 
+There are a few methods for bulk transcript retrieval in `YoutubeTranscriptApi`
 
-Playlists and channels information is retrieved from
+Playlists and channels information are retrieved from
 the [YouTube V3 API](https://developers.google.com/youtube/v3/docs/),
-so you will need to provide API key for all methods.
+so you will need to provide an API key for all methods.
 
 All methods take a `TranscriptRequest` object as a parameter,
 which contains the following fields:
@@ -332,8 +341,6 @@ which contains the following fields:
 - `stopOnError`(optional, defaults to `true`) - Whether to stop on the first error or continue. If true, the method will
   fail fast by throwing an error if one of the transcripts could not be retrieved,
   otherwise it will ignore failed transcripts.
-
-- `cookies` (optional) - Path to [cookies.txt](#cookies) file.
 
 All methods return a map which contains the video ID as a key and the corresponding result as a value.
 
@@ -411,10 +418,26 @@ undocumented API URL embedded within its HTML. This JSON looks like this:
 }
 ```
 
-This library works by making a single GET request to the YouTube page of the specified video, extracting the JSON data
-from the HTML, and parsing it to obtain a list of all available transcripts. To fetch the transcript content, it then
-sends a GET request to the API URL extracted from the JSON. The YouTube API returns the transcript content in XML
-format, like this:
+Before you could directly extract this JSON from video page HTML and call extracted API URL, but YouTube fixed this by not allowing
+requests to the URL that is embedded in this JSON,
+but there is a workaround. Each video page also contains an INNERTUBE_API_KEY field, which can be used to access
+internal YouTube API. Because of this you can make POST request to this URL
+`https://www.youtube.com/youtubei/v1/player?key=INNERTUBE_API_KEY` with a body like this:
+
+```json
+{
+  "context": {
+    "client": {
+      "clientName": "ANDROID",
+      "clientVersion": "20.10.38"
+    }
+  },
+  "videoId": "dQw4w9WgXcQ"
+}
+```
+To retrieve JSON that is similar to the JSON contained in the video page HTML. Extracted API URL is then
+called to retrieve the content of the transcript,
+it has an XML format and looks like this
 
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
