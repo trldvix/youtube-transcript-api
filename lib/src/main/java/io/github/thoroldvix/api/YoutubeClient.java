@@ -5,7 +5,7 @@ import java.util.Map;
 
 
 /**
- * Responsible for sending GET requests to YouTube.
+ * Responsible for sending GET and POST requests to YouTube.
  */
 public interface YoutubeClient {
 

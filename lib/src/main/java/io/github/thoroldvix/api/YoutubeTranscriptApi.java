@@ -4,7 +4,6 @@ package io.github.thoroldvix.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +26,7 @@ public class YoutubeTranscriptApi {
 
     private final YoutubeApi youtubeApi;
     private final ObjectMapper objectMapper;
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(10);
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(15);
 
     YoutubeTranscriptApi(YoutubeClient client) {
         this.objectMapper = new ObjectMapper();
@@ -98,14 +97,12 @@ public class YoutubeTranscriptApi {
             throw new IllegalArgumentException("Invalid video id: " + videoId);
         }
         String innertubeData = youtubeApi.fetchInnertubeData(videoId);
-        return extractTranscriptList(innertubeData, videoId);
-    }
 
-    private TranscriptList extractTranscriptList(String innertubeData, String videoId) throws TranscriptRetrievalException {
         JsonNode captionsJson = extractCaptionsJson(innertubeData, videoId);
         Map<String, Transcript> manualTranscripts = extractManualTranscripts(captionsJson, videoId);
         Map<String, Transcript> generatedTranscripts = extractGeneratedTranscripts(captionsJson, videoId);
         Map<String, String> translationLanguages = extractTranslationLanguages(captionsJson);
+
         return new TranscriptList(videoId, manualTranscripts, generatedTranscripts, translationLanguages);
     }
 
@@ -114,7 +111,7 @@ public class YoutubeTranscriptApi {
         try {
             innertubeJson = objectMapper.readTree(innertubeData);
         } catch (JsonProcessingException e) {
-            throw new TranscriptRetrievalException(videoId, "Failed to parse transcript JSON.", e);
+            throw new TranscriptRetrievalException(videoId, "Failed to parse captions JSON.", e);
         }
 
         if (innertubeJson == null) {

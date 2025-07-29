@@ -2,7 +2,6 @@ package io.github.thoroldvix.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jspecify.annotations.Nullable;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -175,10 +174,7 @@ class YoutubeApi {
 
     String extractChannelId(String channelJson, String channelName) throws TranscriptRetrievalException {
         JsonNode jsonNode = parseJson(channelJson);
-        JsonNode channelId = jsonNode.get("items").
-                get(0)
-                .get("snippet")
-                .get("channelId");
+        JsonNode channelId = jsonNode.get("items").get(0).get("snippet").get("channelId");
 
         if (channelId == null || channelId.isEmpty()) {
             throw new TranscriptRetrievalException("Could not find channel id for the channel with the name: " + channelName);
