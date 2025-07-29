@@ -15,13 +15,11 @@ abstract class TranscriptRetrievalTest {
     protected static final String RESOURCE_PATH = "src/test/resources/";
     protected static final String YOUTUBE_WATCH_URL = "https://www.youtube.com/watch?v=";
     protected YoutubeClient client;
-    protected FileLinesReader fileLinesReader;
     protected YoutubeTranscriptApi youtubeTranscriptApi;
 
     @BeforeEach
     void setUp() {
         client = mock(YoutubeClient.class);
-        fileLinesReader = Mockito.mock(FileLinesReader.class);
-        youtubeTranscriptApi = new DefaultYoutubeTranscriptApi(client, fileLinesReader);
+        youtubeTranscriptApi = new DefaultYoutubeTranscriptApi(client);
     }
 }

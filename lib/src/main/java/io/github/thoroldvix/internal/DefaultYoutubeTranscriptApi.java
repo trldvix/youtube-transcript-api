@@ -14,12 +14,11 @@ import java.util.stream.Collectors;
  * Default implementation of {@link YoutubeTranscriptApi}.
  */
 final class DefaultYoutubeTranscriptApi implements YoutubeTranscriptApi {
-    private final VideoPageFetcher videoPageFetcher;
+    private static final String YOUTUBE_WATCH_URL = "https://www.youtube.com/watch?v=";
     private final YoutubeApi youtubeApi;
     private final YoutubeClient client;
 
-    DefaultYoutubeTranscriptApi(YoutubeClient client, FileLinesReader fileLinesReader) {
-        this.videoPageFetcher = new VideoPageFetcher(client, fileLinesReader);
+    DefaultYoutubeTranscriptApi(YoutubeClient client) {
         this.youtubeApi = new YoutubeApi(client);
         this.client = client;
     }
@@ -49,32 +48,28 @@ final class DefaultYoutubeTranscriptApi implements YoutubeTranscriptApi {
     }
 
     @Override
-    public TranscriptContent getTranscriptWithCookies(String videoId, String cookiesPath, String... languageCodes) throws TranscriptRetrievalException {
-        return listTranscriptsWithCookies(videoId, cookiesPath)
-                .findTranscript(languageCodes)
-                .fetch();
-    }
-
-    @Override
     public TranscriptContent getTranscript(String videoId, String... languageCodes) throws TranscriptRetrievalException {
         return listTranscripts(videoId)
                 .findTranscript(languageCodes)
                 .fetch();
     }
 
-    @Override
-    public TranscriptList listTranscriptsWithCookies(String videoId, String cookiesPath) throws TranscriptRetrievalException {
-        validateVideoId(videoId);
-        TranscriptListExtractor extractor = new TranscriptListExtractor(client, videoId);
-        String videoPageHtml = videoPageFetcher.fetch(videoId, cookiesPath);
-        return extractor.extract(videoPageHtml);
+    private String fetchVideoPage(String videoId) throws TranscriptRetrievalException {
+        String videoPageHtml = client.get(YOUTUBE_WATCH_URL + videoId, Map.of("Accept-Language", "en-US"));
+        String consentPagePattern = "action=\"https://consent.youtube.com/s\"";
+
+        if (videoPageHtml.contains(consentPagePattern)) {
+            throw new TranscriptRetrievalException("Video is age restricted");
+        }
+
+        return videoPageHtml;
     }
 
     @Override
     public TranscriptList listTranscripts(String videoId) throws TranscriptRetrievalException {
         validateVideoId(videoId);
         TranscriptListExtractor extractor = new TranscriptListExtractor(client, videoId);
-        String videoPageHtml = videoPageFetcher.fetch(videoId);
+        String videoPageHtml = fetchVideoPage(videoId);
         return extractor.extract(videoPageHtml);
     }
 
@@ -134,10 +129,6 @@ final class DefaultYoutubeTranscriptApi implements YoutubeTranscriptApi {
 
     private TranscriptList transcriptListSupplier(TranscriptRequest request, String videoId) {
         try {
-            String cookiesPath = request.getCookiesPath();
-            if (cookiesPath != null) {
-                return listTranscriptsWithCookies(videoId, cookiesPath);
-            }
             return listTranscripts(videoId);
         } catch (TranscriptRetrievalException e) {
             if (request.isStopOnError()) {

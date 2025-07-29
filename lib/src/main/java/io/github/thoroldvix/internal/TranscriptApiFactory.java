@@ -30,6 +30,6 @@ public final class TranscriptApiFactory {
      * @return A new instance of {@link YoutubeTranscriptApi}
      */
     public static YoutubeTranscriptApi createWithClient(YoutubeClient client) {
-        return new DefaultYoutubeTranscriptApi(client, filePath -> Files.readAllLines(Path.of(filePath)));
+        return new DefaultYoutubeTranscriptApi(client);
     }
 }

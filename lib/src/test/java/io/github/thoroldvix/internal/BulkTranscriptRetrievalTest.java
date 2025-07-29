@@ -29,7 +29,6 @@ class BulkTranscriptRetrievalTest extends TranscriptRetrievalTest {
     private static String CHANNEL_RESPONSE;
     private static String API_RESPONSES_PATH;
     private static TranscriptRequest REQUEST;
-    private static TranscriptRequest REQUEST_WITH_COOKIES;
 
     @BeforeAll
     static void beforeAll() throws IOException {
@@ -39,7 +38,6 @@ class BulkTranscriptRetrievalTest extends TranscriptRetrievalTest {
         CHANNEL_SEARCH_RESPONSE = Files.readString(Paths.get(API_RESPONSES_PATH, "channel_search_response.json"));
         CHANNEL_RESPONSE = Files.readString(Paths.get(API_RESPONSES_PATH, "channel_response.json"));
         REQUEST = new TranscriptRequest("apiKey", true);
-        REQUEST_WITH_COOKIES = new TranscriptRequest("apiKey", "cookiePath", true);
     }
 
 
@@ -48,7 +46,7 @@ class BulkTranscriptRetrievalTest extends TranscriptRetrievalTest {
         when(client.get(eq(PLAYLIST_ITEMS), anyMap())).thenReturn(PLAYLIST_SINGLE_PAGE);
         when(client.get(anyString(), anyMap())).thenReturn(YOUTUBE_HTML);
 
-        Map<String, TranscriptList> actual = youtubeTranscriptApi.listTranscriptsForPlaylist(PLAYLIST_ID, REQUEST_WITH_COOKIES);
+        Map<String, TranscriptList> actual = youtubeTranscriptApi.listTranscriptsForPlaylist(PLAYLIST_ID, REQUEST);
 
         assertThat(actual.keySet()).containsExactlyInAnyOrder(VIDEO_ID_1, VIDEO_ID_2);
         assertThat(actual.get(VIDEO_ID_1))
@@ -107,8 +105,7 @@ class BulkTranscriptRetrievalTest extends TranscriptRetrievalTest {
         when(client.get(eq(PLAYLIST_ITEMS), anyMap())).thenReturn(PLAYLIST_SINGLE_PAGE);
         when(client.get(anyString(), anyMap())).thenReturn(YOUTUBE_HTML);
 
-        Map<String, TranscriptList> actual = youtubeTranscriptApi.listTranscriptsForChannel("3Blue1Brown",
-                REQUEST_WITH_COOKIES);
+        Map<String, TranscriptList> actual = youtubeTranscriptApi.listTranscriptsForChannel("3Blue1Brown", REQUEST);
 
         assertThat(actual.keySet()).containsExactlyInAnyOrder(VIDEO_ID_1, VIDEO_ID_2);
         assertThat(paramsCaptor.getValue()).containsEntry("id", "UCYO_jab_esuFRV4b17AJtAw");

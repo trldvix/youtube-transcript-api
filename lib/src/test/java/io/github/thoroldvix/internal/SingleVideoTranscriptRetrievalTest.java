@@ -102,35 +102,6 @@ class SingleVideoTranscriptRetrievalTest extends TranscriptRetrievalTest {
     }
 
     @Test
-    void getTranscriptCreatesConsentCookieIfNeededAndRetries() throws Exception {
-        when(client.get(anyString(), anyMap()))
-                .thenReturn(CONSENT_PAGE_HTML)
-                .thenReturn(YOUTUBE_HTML)
-                .thenReturn(TRANSCRIPT_XML);
-
-        youtubeTranscriptApi.getTranscript(VIDEO_ID);
-
-        verify(client).get(anyString(), eq(Map.of("Accept-Language", "en-US",
-                "Cookie", "CONSENT=YES+cb.20210328-17-p0.de+FX+119")));
-    }
-
-    @Test
-    void getTranscriptThrowsExceptionWhenConsentCookieCreationFailed() throws Exception {
-        givenVideoPageHtml(CONSENT_PAGE_HTML);
-
-        assertThatThrownBy(() -> youtubeTranscriptApi.getTranscript(VIDEO_ID))
-                .isInstanceOf(TranscriptRetrievalException.class);
-    }
-
-    @Test
-    void getTranscriptThrowsExceptionWhenConsentCookieAgeInvalid() throws Exception {
-        givenVideoPageHtmlFromFile("pages/youtube_consent_page_invalid.html.static");
-
-        assertThatThrownBy(() -> youtubeTranscriptApi.getTranscript(VIDEO_ID))
-                .isInstanceOf(TranscriptRetrievalException.class);
-    }
-
-    @Test
     void getTranscriptThrowsExceptionWhenVideoUnavailable() throws Exception {
         givenVideoPageHtmlFromFile("pages/youtube_video_unavailable.html.static");
 
@@ -195,28 +166,10 @@ class SingleVideoTranscriptRetrievalTest extends TranscriptRetrievalTest {
     }
 
     @Test
-    void getTranscriptWithCookies() throws Exception {
-        List<String> lines = Files.readAllLines(Path.of(RESOURCE_PATH, "example_cookies.txt"));
+    void getTranscriptThrowsExceptionWhenVideoIsAgeRestricted() throws Exception {
+        givenVideoPageHtml(CONSENT_PAGE_HTML);
 
-        when(client.get(anyString(), anyMap()))
-                .thenReturn(YOUTUBE_HTML)
-                .thenReturn(TRANSCRIPT_XML);
-        when(fileLinesReader.readLines(anyString())).thenReturn(lines);
-
-        TranscriptContent expected = getTranscriptContent();
-
-        TranscriptContent actual = youtubeTranscriptApi.getTranscriptWithCookies(VIDEO_ID, "cookiePath");
-
-        assertThat(actual).isEqualTo(expected);
-        verify(client).get(anyString(), eq(Map.of("Accept-Language", "en-US", "Cookie", "TEST_FIELD=\"TEST_VALUE\";$Path=\"/\";$Domain=\".example.com\"")));
-
-    }
-
-    @Test
-    void getTranscriptWithCookiesWhenCannotReadCookiesFileThrowsException() throws Exception {
-        when(fileLinesReader.readLines(anyString())).thenThrow(IOException.class);
-
-        assertThatThrownBy(() -> youtubeTranscriptApi.getTranscriptWithCookies(VIDEO_ID, "cookiePath"))
+        assertThatThrownBy(() -> youtubeTranscriptApi.getTranscript(VIDEO_ID))
                 .isInstanceOf(TranscriptRetrievalException.class);
     }
 }

@@ -314,23 +314,8 @@ YoutubeTranscriptApi youtubeTranscriptApi = TranscriptApiFactory.createWithClien
 ```
 
 ### Cookies
-
-Some videos may be age-restricted, requiring authentication to access the transcript.
-To achieve this, obtain access to the desired video in a browser and download the cookies in Netscape format, storing
-them as a TXT file.
-You can use extensions
-like [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
-for Chrome or [cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/) for Firefox to do this.
-`YoutubeTranscriptApi` contains `listTranscriptsWithCookies` and `getTranscriptWithCookies` which accept a path to the
-cookies.txt file.
-
-```java
-// Retrieve transcript list
-TranscriptList transcriptList = youtubeTranscriptApi.listTranscriptsWithCookies("videoId", "path/to/cookies.txt");
-
-// Get transcript content
-TranscriptContent transcriptContent = youtubeTranscriptApi.getTranscriptWithCookies("videoId", "path/to/cookies.txt", "en");
-```
+Some videos are age-restricted, so this module won't be able to access those videos without some sort of authentication.
+Unfortunately, some recent changes to the YouTube API have broken the current implementation of cookie-based authentication, so this feature is currently not available.
 
 ### Bulk Transcript Retrieval
 
