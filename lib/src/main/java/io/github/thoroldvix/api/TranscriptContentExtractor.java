@@ -1,13 +1,10 @@
-package io.github.thoroldvix.internal;
+package io.github.thoroldvix.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import io.github.thoroldvix.api.TranscriptContent;
-import io.github.thoroldvix.api.TranscriptRetrievalException;
-import io.github.thoroldvix.internal.DefaultTranscriptContent.Fragment;
+import io.github.thoroldvix.api.TranscriptContent.Fragment;
 import org.apache.commons.text.StringEscapeUtils;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -35,7 +32,7 @@ final class TranscriptContentExtractor {
                 .filter(TranscriptContentExtractor::isValidTranscriptFragment)
                 .collect(Collectors.toList());
         List<Fragment> content = formatFragments(fragments);
-        return new DefaultTranscriptContent(content);
+        return new TranscriptContent(content);
     }
 
     private static Fragment unescapeXmlTags(Fragment fragment) {

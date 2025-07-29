@@ -1,9 +1,7 @@
-package io.github.thoroldvix.internal;
+package io.github.thoroldvix.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.thoroldvix.api.TranscriptRetrievalException;
-import io.github.thoroldvix.api.YoutubeClient;
 import org.jspecify.annotations.Nullable;
 
 import java.net.URLEncoder;
@@ -15,7 +13,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-final class YoutubeApi {
+class YoutubeApi {
 
     private final static String YOUTUBE_API_V3_BASE_URL = "https://www.googleapis.com/youtube/v3/";
     private static final String YOUTUBE_WATCH_URL = "https://www.youtube.com/watch?v=";
@@ -59,7 +57,7 @@ final class YoutubeApi {
             videoIds.addAll(extractVideoIds(playlistJson));
             String nextPageToken = extractNextPageToken(playlistJson);
 
-            if (nextPageToken == null) {
+            if (nextPageToken.isBlank()) {
                 break;
             }
 
@@ -201,13 +199,12 @@ final class YoutubeApi {
         return videoIds;
     }
 
-    @Nullable
     String extractNextPageToken(String playlistJson) throws TranscriptRetrievalException {
         JsonNode jsonNode = parseJson(playlistJson);
         JsonNode nextPageToken = jsonNode.get("nextPageToken");
 
         if (nextPageToken == null || nextPageToken.isEmpty()) {
-            return null;
+            return "";
         }
 
         return nextPageToken.asText();

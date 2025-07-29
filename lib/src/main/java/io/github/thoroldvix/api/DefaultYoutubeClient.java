@@ -1,4 +1,4 @@
-package io.github.thoroldvix.internal;
+package io.github.thoroldvix.api;
 
 import java.io.IOException;
 import java.net.URI;
@@ -6,9 +6,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
-
-import io.github.thoroldvix.api.TranscriptRetrievalException;
-import io.github.thoroldvix.api.YoutubeClient;
 
 /**
  * Default implementation of {@link YoutubeClient}.
