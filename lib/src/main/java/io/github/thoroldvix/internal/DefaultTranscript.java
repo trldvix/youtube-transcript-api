@@ -4,7 +4,6 @@ package io.github.thoroldvix.internal;
 import io.github.thoroldvix.api.Transcript;
 import io.github.thoroldvix.api.TranscriptContent;
 import io.github.thoroldvix.api.TranscriptRetrievalException;
-import io.github.thoroldvix.api.YoutubeClient;
 
 import java.util.*;
 
@@ -36,12 +35,12 @@ final class DefaultTranscript implements Transcript {
         this.languageCode = languageCode;
         this.isGenerated = isGenerated;
         this.translationLanguages = translationLanguages;
-        this.isTranslatable = translationLanguages != null && !translationLanguages.isEmpty();
+        this.isTranslatable = !translationLanguages.isEmpty();
     }
 
     @Override
     public TranscriptContent fetch() throws TranscriptRetrievalException {
-        String transcriptXml = youtubeApi.getTranscriptContentXml(videoId, apiUrl);
+        String transcriptXml = youtubeApi.fetchTranscriptContentXml(videoId, apiUrl);
         return TranscriptContentExtractor.extract(videoId, transcriptXml);
     }
 

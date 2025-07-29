@@ -13,8 +13,8 @@ public class TranscriptRequest {
     private final boolean stopOnError;
 
     public TranscriptRequest(String apiKey, boolean stopOnError) {
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalArgumentException("API key cannot be null or blank");
+        if (apiKey.isBlank()) {
+            throw new IllegalArgumentException("API key cannot be empty");
         }
         this.apiKey = apiKey;
         this.stopOnError = stopOnError;
@@ -37,37 +37,5 @@ public class TranscriptRequest {
      */
     public boolean isStopOnError() {
         return stopOnError;
-    }
-
-    /**
-     * Creates a new builder for {@link TranscriptRequest}.
-     */
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    /**
-     * Builder for {@link TranscriptRequest}.
-     */
-    public static class Builder {
-        private String apiKey;
-        private boolean stopOnError = true; // default
-
-        public Builder() {
-        }
-
-        public Builder apiKey(String apiKey) {
-            this.apiKey = apiKey;
-            return this;
-        }
-
-        public Builder stopOnError(boolean stopOnError) {
-            this.stopOnError = stopOnError;
-            return this;
-        }
-
-        public TranscriptRequest build() {
-            return new TranscriptRequest(apiKey, stopOnError);
-        }
     }
 }

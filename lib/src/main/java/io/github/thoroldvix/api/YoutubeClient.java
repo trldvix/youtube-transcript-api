@@ -23,6 +23,7 @@ public interface YoutubeClient {
      * Sends a POST request to the specified URL and returns the response body.
      *
      * @param url The URL to which the POST request is made.
+     * @param body The body that is sent with a POST request.
      * @return The body of the response as a {@link String}.
      * @throws TranscriptRetrievalException If the request to YouTube fails.
      */
@@ -31,7 +32,7 @@ public interface YoutubeClient {
     /**
      * Sends a GET request to the specified URL and returns the response body.
      *
-     * @param url     The URL to which the GET request is made.
+     * @param url The URL to which the GET request is made.
      * @return The body of the response as a {@link String}.
      * @throws TranscriptRetrievalException If the request to YouTube fails.
      */

@@ -1,8 +1,10 @@
 package io.github.thoroldvix.internal;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.thoroldvix.api.TranscriptRetrievalException;
 import io.github.thoroldvix.api.YoutubeClient;
+import org.jspecify.annotations.Nullable;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -10,19 +12,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 final class YoutubeApi {
+
     private final static String YOUTUBE_API_V3_BASE_URL = "https://www.googleapis.com/youtube/v3/";
     private static final String YOUTUBE_WATCH_URL = "https://www.youtube.com/watch?v=";
     private static final String INNERTUBE_API_URL = "https://www.youtube.com/youtubei/v1/player?key=%s";
-    private final YoutubeClient client;
 
-    YoutubeApi(YoutubeClient client) {
+    private final YoutubeClient client;
+    private final ObjectMapper objectMapper;
+
+    YoutubeApi(YoutubeClient client, ObjectMapper objectMapper) {
         this.client = client;
+        this.objectMapper = objectMapper;
     }
 
-    String getChannelPlaylistId(String channelName, String apiKey) throws TranscriptRetrievalException {
-        String channelId = getChannelId(channelName, apiKey);
+    String fetchChannelPlaylistId(String channelName, String apiKey) throws TranscriptRetrievalException {
+        String channelId = fetchChannelId(channelName, apiKey);
         Map<String, String> params = createParams(
                 "key", apiKey,
                 "part", "contentDetails",
@@ -32,10 +40,10 @@ final class YoutubeApi {
         String url = buildUrlWithParams(YOUTUBE_API_V3_BASE_URL + "channels", params);
         String channelJson = client.get(url);
 
-        return YoutubeApiResponseParser.getChannelPlaylistId(channelJson);
+        return extractChannelPlaylistId(channelJson);
     }
 
-    List<String> getVideoIds(String playlistId, String apiKey) throws TranscriptRetrievalException {
+    List<String> fetchVideoIdsForPlaylist(String playlistId, String apiKey) throws TranscriptRetrievalException {
         Map<String, String> params = createParams(
                 "key", apiKey,
                 "playlistId", playlistId,
@@ -48,8 +56,8 @@ final class YoutubeApi {
             String url = buildUrlWithParams(YOUTUBE_API_V3_BASE_URL + "playlistItems", params);
             String playlistJson = client.get(url);
 
-            videoIds.addAll(YoutubeApiResponseParser.getVideoIds(playlistJson));
-            String nextPageToken = YoutubeApiResponseParser.getNextPageToken(playlistJson);
+            videoIds.addAll(extractVideoIds(playlistJson));
+            String nextPageToken = extractNextPageToken(playlistJson);
 
             if (nextPageToken == null) {
                 break;
@@ -61,7 +69,7 @@ final class YoutubeApi {
         return videoIds;
     }
 
-    private String getChannelId(String channelName, String apiKey) throws TranscriptRetrievalException {
+    private String fetchChannelId(String channelName, String apiKey) throws TranscriptRetrievalException {
         Map<String, String> params = createParams(
                 "key", apiKey,
                 "q", channelName,
@@ -72,10 +80,10 @@ final class YoutubeApi {
         String url = buildUrlWithParams(YOUTUBE_API_V3_BASE_URL + "search", params);
         String searchJson = client.get(url);
 
-        return YoutubeApiResponseParser.getChannelId(searchJson, channelName);
+        return extractChannelId(searchJson, channelName);
     }
 
-    String getVideoPage(String videoId) throws TranscriptRetrievalException {
+    private String fetchVideoPage(String videoId) throws TranscriptRetrievalException {
         String videoPageHtml;
         try {
             videoPageHtml = client.get(YOUTUBE_WATCH_URL + videoId, Map.of("Accept-Language", "en-US"));
@@ -95,22 +103,9 @@ final class YoutubeApi {
         return videoPageHtml;
     }
 
-    String getTranscriptContentXml(String videoId, String contentUrl) throws TranscriptRetrievalException {
-        String transcriptXml;
-        try {
-            transcriptXml = client.get(contentUrl, Map.of("Accept-Language", "en-US"));
-        } catch (TranscriptRetrievalException e) {
-            throw new TranscriptRetrievalException(videoId, e.getMessage());
-        }
-
-        if (transcriptXml == null || transcriptXml.isBlank()) {
-            throw new TranscriptRetrievalException(videoId, "YouTube returned an empty transcript XML.");
-        }
-
-        return transcriptXml;
-    }
-
-    String getInnertubeData(String videoId, String innertubeApiKey) throws TranscriptRetrievalException {
+    String fetchInnertubeData(String videoId) throws TranscriptRetrievalException {
+        String videoPageHtml = fetchVideoPage(videoId);
+        String innertubeApiKey = extractInnertubeApiKey(videoId, videoPageHtml);
         String body = String.format("{\n" +
                                     "\"context\":{\n" +
                                     "    \"client\": {\n" +
@@ -122,11 +117,37 @@ final class YoutubeApi {
                                     "}", videoId);
 
         String innertubeData = client.post(String.format(INNERTUBE_API_URL, innertubeApiKey), body);
-        if (innertubeData == null || innertubeData.isBlank()) {
+
+        if (innertubeData.isBlank()) {
             throw new TranscriptRetrievalException(videoId, "Could not get innertube data from YouTube.");
         }
 
         return innertubeData;
+    }
+
+    private String extractInnertubeApiKey(String videoId, String videoPageHtml) throws TranscriptRetrievalException {
+        Pattern pattern = Pattern.compile("\"INNERTUBE_API_KEY\"\\s*:\\s*\"([^\"]+)\"");
+        Matcher matcher = pattern.matcher(videoPageHtml);
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            throw new TranscriptRetrievalException(videoId, "INNERTUBE_API_KEY not found in video page HTML.");
+        }
+    }
+
+    String fetchTranscriptContentXml(String videoId, String contentUrl) throws TranscriptRetrievalException {
+        String transcriptXml;
+        try {
+            transcriptXml = client.get(contentUrl, Map.of("Accept-Language", "en-US"));
+        } catch (TranscriptRetrievalException e) {
+            throw new TranscriptRetrievalException(videoId, e.getMessage());
+        }
+
+        if (transcriptXml.isBlank()) {
+            throw new TranscriptRetrievalException(videoId, "YouTube returned an empty transcript XML.");
+        }
+
+        return transcriptXml;
     }
 
     private Map<String, String> createParams(String... params) {
@@ -134,6 +155,7 @@ final class YoutubeApi {
         for (int i = 0; i < params.length; i += 2) {
             map.put(params[i], params[i + 1]);
         }
+
         return map;
     }
 
@@ -153,4 +175,59 @@ final class YoutubeApi {
         return sb.toString();
     }
 
+    String extractChannelId(String channelJson, String channelName) throws TranscriptRetrievalException {
+        JsonNode jsonNode = parseJson(channelJson);
+        JsonNode channelId = jsonNode.get("items").
+                get(0)
+                .get("snippet")
+                .get("channelId");
+
+        if (channelId == null || channelId.isEmpty()) {
+            throw new TranscriptRetrievalException("Could not find channel id for the channel with the name: " + channelName);
+        }
+
+        return channelId.asText();
+    }
+
+    List<String> extractVideoIds(String playlistJson) throws TranscriptRetrievalException {
+        JsonNode jsonNode = parseJson(playlistJson);
+        List<String> videoIds = new ArrayList<>();
+
+        jsonNode.get("items").forEach(item -> {
+            String videoId = item.get("snippet").get("resourceId").get("videoId").asText();
+            videoIds.add(videoId);
+        });
+
+        return videoIds;
+    }
+
+    @Nullable
+    String extractNextPageToken(String playlistJson) throws TranscriptRetrievalException {
+        JsonNode jsonNode = parseJson(playlistJson);
+        JsonNode nextPageToken = jsonNode.get("nextPageToken");
+
+        if (nextPageToken == null || nextPageToken.isEmpty()) {
+            return null;
+        }
+
+        return nextPageToken.asText();
+    }
+
+    String extractChannelPlaylistId(String channelJson) throws TranscriptRetrievalException {
+        JsonNode jsonNode = parseJson(channelJson);
+        return jsonNode.get("items")
+                .get(0)
+                .get("contentDetails")
+                .get("relatedPlaylists")
+                .get("uploads")
+                .asText();
+    }
+
+    private JsonNode parseJson(String json) throws TranscriptRetrievalException {
+        try {
+            return objectMapper.readTree(json);
+        } catch (Exception e) {
+            throw new TranscriptRetrievalException("Failed to parse YouTube API response JSON.", e);
+        }
+    }
 }
