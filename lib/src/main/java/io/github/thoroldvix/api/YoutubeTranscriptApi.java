@@ -225,7 +225,7 @@ public class YoutubeTranscriptApi {
         List<CompletableFuture<Void>> futures = videoIds.stream()
                 .map(videoId -> CompletableFuture.supplyAsync(() -> transcriptListSupplier(request, videoId), executorService)
                         .thenAccept(transcriptList -> {
-                            if (transcriptList.isEmpty()) {
+                            if (!transcriptList.isEmpty()) {
                                 transcriptLists.put(transcriptList.getVideoId(), transcriptList);
                             }
                         })).collect(Collectors.toList());
@@ -256,7 +256,7 @@ public class YoutubeTranscriptApi {
         List<CompletableFuture<Void>> futures = transcriptLists.values().stream()
                 .map(transcriptList -> CompletableFuture.supplyAsync(() -> transcriptContentSupplier(request, languageCodes, transcriptList), executorService)
                         .thenAccept(transcriptContent -> {
-                            if (transcriptContent.isEmpty()) {
+                            if (!transcriptContent.isEmpty()) {
                                 transcripts.put(transcriptList.getVideoId(), transcriptContent);
                             }
                         })).collect(Collectors.toList());
