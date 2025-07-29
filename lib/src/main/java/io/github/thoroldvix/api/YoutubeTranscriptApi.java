@@ -26,10 +26,11 @@ public class YoutubeTranscriptApi {
 
     private final YoutubeApi youtubeApi;
     private final TranscriptListExtractor transcriptListExtractor;
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(15);
+    private final ExecutorService executorService;
 
     YoutubeTranscriptApi(YoutubeClient client) {
         ObjectMapper objectMapper = new ObjectMapper();
+        executorService = Executors.newFixedThreadPool(10);
         this.youtubeApi = new YoutubeApi(client, objectMapper);
         this.transcriptListExtractor = new TranscriptListExtractor(youtubeApi, objectMapper);
     }
