@@ -7,13 +7,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class SingleVideoTranscriptRetrievalTest extends TranscriptRetrievalTest {
 
@@ -29,7 +27,7 @@ class SingleVideoTranscriptRetrievalTest extends TranscriptRetrievalTest {
     @Test
     void listTranscripts() throws Exception {
         givenVideoPageHtml(YOUTUBE_HTML);
-        givenInnertubeData(INNERTUBE_DATA);
+        givenInnertubeData(INNERTUBE_DATA, VIDEO_ID);
 
         TranscriptList transcriptList = youtubeTranscriptApi.listTranscripts(VIDEO_ID);
 
@@ -38,24 +36,9 @@ class SingleVideoTranscriptRetrievalTest extends TranscriptRetrievalTest {
                 .containsExactlyInAnyOrder("cs", "hi", "de", "ko", "ja", "en", "es", "zh", "en");
     }
 
-    private void givenInnertubeData(String innertubeData) throws TranscriptRetrievalException {
-        String expectedInnertubeRequest = """
-                {
-                "context":{
-                    "client": {
-                    "clientName": "ANDROID",
-                    "clientVersion": "20.10.38"
-                    }
-                },
-                    "videoId": "%s"
-                }""".formatted(VIDEO_ID);
-        when(client.post(INNERTUBE_API_URL + "?key=" + INNERTUBE_API_KEY, expectedInnertubeRequest))
-                .thenReturn(innertubeData);
-    }
-
     private void givenInnertubeDataFromFile(String fileName) throws Exception {
         String innertubeData = Files.readString(Path.of(RESOURCE_PATH, fileName));
-        givenInnertubeData(innertubeData);
+        givenInnertubeData(innertubeData, VIDEO_ID);
     }
 
     @Test
@@ -144,20 +127,13 @@ class SingleVideoTranscriptRetrievalTest extends TranscriptRetrievalTest {
     @Test
     void getTranscript() throws Exception {
         givenVideoPageHtml(YOUTUBE_HTML);
-        givenInnertubeData(INNERTUBE_DATA);
-        when(client.get(matches("https://www\\.youtube\\.com/api/timedtext\\?v=.*"), anyMap()))
-                .thenReturn(Files.readString(Path.of("src/test/resources/transcript.xml")));
+        givenInnertubeData(INNERTUBE_DATA, VIDEO_ID);
+        givenTranscriptContentXml();
 
         TranscriptContent expected = getTranscriptContent();
 
         TranscriptContent actual = youtubeTranscriptApi.getTranscript(VIDEO_ID);
 
         assertThat(actual).isEqualTo(expected);
-    }
-
-    private static TranscriptContent getTranscriptContent() {
-        return new TranscriptContent(List.of(new TranscriptContent.Fragment("Hey, this is just a test", 0.0, 1.54),
-                new TranscriptContent.Fragment("this is not the original transcript", 1.54, 4.16),
-                new TranscriptContent.Fragment("test & test, like this \"test\" he's testing", 5.7, 3.239)));
     }
 }
