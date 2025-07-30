@@ -44,33 +44,29 @@ class TranscriptListExtractor {
         }
 
         if (!innertubeJson.has("captions")) {
-            throw new TranscriptRetrievalException(videoId, "This video does not have captions.");
-        }
-
-        JsonNode captionsJson = innertubeJson.get("captions").get("playerCaptionsTracklistRenderer");
-        if (captionsJson == null) {
             throw new TranscriptRetrievalException(videoId, "Transcripts are disabled for this video.");
         }
 
-        return captionsJson;
+        return innertubeJson.get("captions").get("playerCaptionsTracklistRenderer");
     }
 
     private void verifyPlayabilityStatus(String videoId, JsonNode playabilityStatusJson) throws TranscriptRetrievalException {
         String status = playabilityStatusJson.get("status").asText();
 
         if (status != null && !status.isBlank() && !status.equals("OK")) {
+
             String reason = playabilityStatusJson.get("reason").asText();
             if (status.equals("LOGIN_REQUIRED")) {
-                if (reason.equals("BOT_DETECTED")) {
+                if (reason.equals("Sign in to confirm you’re not a bot")) {
                     throw new TranscriptRetrievalException(videoId, "YouTube is blocking requests from your ip because it thinks you are a bot");
                 }
-                if (reason.equals("AGE_RESTRICTED")) {
+                if (reason.equals("This video may be inappropriate for some users.")) {
                     throw new TranscriptRetrievalException(videoId, "Video is age restricted");
                 }
             }
 
-            if (status.equals("ERROR") && reason.equals("VIDEO_UNAVAILABLE")) {
-                throw new TranscriptRetrievalException(videoId, "This video is not available");
+            if (status.equals("ERROR") && reason.equals("This video is unavailable")) {
+                throw new TranscriptRetrievalException(videoId, reason);
             }
 
             JsonNode runs = playabilityStatusJson
