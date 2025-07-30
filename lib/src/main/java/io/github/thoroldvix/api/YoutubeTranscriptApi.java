@@ -100,7 +100,7 @@ public class YoutubeTranscriptApi {
     private TranscriptList transcriptListSupplier(BulkTranscriptRequest request, String videoId) {
         try {
             return listTranscripts(videoId);
-        } catch (TranscriptRetrievalException e) {
+        } catch (Exception e) {
             if (request.isStopOnError()) {
                 throw new CompletionException(e);
             }
@@ -156,7 +156,7 @@ public class YoutubeTranscriptApi {
     private static TranscriptContent transcriptContentSupplier(BulkTranscriptRequest request, String[] languageCodes, TranscriptList transcriptList) {
         try {
             return transcriptList.findTranscript(languageCodes).fetch();
-        } catch (TranscriptRetrievalException e) {
+        } catch (Exception e) {
             if (request.isStopOnError()) {
                 throw new CompletionException(e);
             }
