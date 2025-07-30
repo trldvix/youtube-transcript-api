@@ -90,7 +90,7 @@ class YoutubeApi {
 
         String consentPagePattern = "action=\"https://consent.youtube.com/s\"";
         if (videoPageHtml.contains(consentPagePattern)) {
-            throw new TranscriptRetrievalException("Video is age restricted");
+            throw new TranscriptRetrievalException(videoId, "Video is age restricted");
         }
 
         if (videoPageHtml.contains("class=\"g-recaptcha\"")) {
@@ -123,7 +123,7 @@ class YoutubeApi {
     }
 
     private String extractInnertubeApiKey(String videoId, String videoPageHtml) throws TranscriptRetrievalException {
-        Pattern pattern = Pattern.compile("\"INNERTUBE_API_KEY\"\\s*:\\s*\"([^\"]+)\"");
+        Pattern pattern = Pattern.compile("\"INNERTUBE_API_KEY\"\\s*:\\s*\"([^\"]+)\"", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(videoPageHtml);
         if (matcher.find()) {
             return matcher.group(1);
