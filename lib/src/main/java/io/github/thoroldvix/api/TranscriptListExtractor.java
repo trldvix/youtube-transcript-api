@@ -40,7 +40,7 @@ class TranscriptListExtractor {
         }
 
         if (innertubeJson.has("playabilityStatus")) {
-            checkPlayabilityStatus(videoId, innertubeJson.get("playabilityStatus"));
+            verifyPlayabilityStatus(videoId, innertubeJson.get("playabilityStatus"));
         }
 
         if (!innertubeJson.has("captions")) {
@@ -55,7 +55,7 @@ class TranscriptListExtractor {
         return captionsJson;
     }
 
-    private void checkPlayabilityStatus(String videoId, JsonNode playabilityStatusJson) throws TranscriptRetrievalException {
+    private void verifyPlayabilityStatus(String videoId, JsonNode playabilityStatusJson) throws TranscriptRetrievalException {
         String status = playabilityStatusJson.get("status").asText();
 
         if (status != null && !status.isBlank() && !status.equals("OK")) {
@@ -120,6 +120,7 @@ class TranscriptListExtractor {
         if (!json.has("translationLanguages")) {
             return Collections.emptyMap();
         }
+
         return StreamSupport.stream(json.get("translationLanguages").spliterator(), false)
                 .collect(Collectors.toMap(
                         jsonNode -> jsonNode.get("languageCode").asText(),
