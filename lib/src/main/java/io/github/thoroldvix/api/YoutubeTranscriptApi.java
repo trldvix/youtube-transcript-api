@@ -1,17 +1,12 @@
 package io.github.thoroldvix.api;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * This is the main interface for the YouTube Transcript API.
@@ -81,11 +76,11 @@ public class YoutubeTranscriptApi {
      * Retrieves transcript lists for all videos in the specified playlist.
      *
      * @param playlistId The ID of the playlist
-     * @param request    {@link TranscriptRequest} request object containing API key, cookies file path, and stop on error flag
+     * @param request    {@link BulkTranscriptRequest} request object containing API key and stop on error flag
      * @return A map of video IDs to {@link TranscriptList} objects
      * @throws TranscriptRetrievalException If the retrieval of the transcript lists fails
      */
-    public Map<String, TranscriptList> listTranscriptsForPlaylist(String playlistId, TranscriptRequest request) throws TranscriptRetrievalException {
+    public Map<String, TranscriptList> listTranscriptsForPlaylist(String playlistId, BulkTranscriptRequest request) throws TranscriptRetrievalException {
         Map<String, TranscriptList> transcriptLists = new ConcurrentHashMap<>();
         List<String> videoIds = youtubeApi.fetchVideoIdsForPlaylist(playlistId, request.getApiKey());
 
@@ -102,7 +97,7 @@ public class YoutubeTranscriptApi {
         return transcriptLists;
     }
 
-    private TranscriptList transcriptListSupplier(TranscriptRequest request, String videoId) {
+    private TranscriptList transcriptListSupplier(BulkTranscriptRequest request, String videoId) {
         try {
             return listTranscripts(videoId);
         } catch (TranscriptRetrievalException e) {
@@ -131,7 +126,7 @@ public class YoutubeTranscriptApi {
      * Retrieves transcript content for all videos in the specified playlist.
      *
      * @param playlistId    The ID of the playlist
-     * @param request       {@link TranscriptRequest} request object containing API key and stop on error flag
+     * @param request       {@link BulkTranscriptRequest} request object containing API key and stop on error flag
      * @param languageCodes A varargs list of language codes in descending priority.
      *                      <p>
      *                      For example:
@@ -141,7 +136,7 @@ public class YoutubeTranscriptApi {
      * @return A map of video IDs to {@link TranscriptContent} objects
      * @throws TranscriptRetrievalException If the retrieval of the transcript fails
      */
-    public Map<String, TranscriptContent> getTranscriptsForPlaylist(String playlistId, TranscriptRequest request, String... languageCodes) throws TranscriptRetrievalException {
+    public Map<String, TranscriptContent> getTranscriptsForPlaylist(String playlistId, BulkTranscriptRequest request, String... languageCodes) throws TranscriptRetrievalException {
         Map<String, TranscriptList> transcriptLists = listTranscriptsForPlaylist(playlistId, request);
         Map<String, TranscriptContent> transcripts = new ConcurrentHashMap<>();
 
@@ -158,7 +153,7 @@ public class YoutubeTranscriptApi {
         return transcripts;
     }
 
-    private static TranscriptContent transcriptContentSupplier(TranscriptRequest request, String[] languageCodes, TranscriptList transcriptList) {
+    private static TranscriptContent transcriptContentSupplier(BulkTranscriptRequest request, String[] languageCodes, TranscriptList transcriptList) {
         try {
             return transcriptList.findTranscript(languageCodes).fetch();
         } catch (TranscriptRetrievalException e) {
@@ -174,11 +169,11 @@ public class YoutubeTranscriptApi {
      * Retrieves transcript lists for all videos for the specified channel.
      *
      * @param channelName The name of the channel
-     * @param request     {@link TranscriptRequest} request object containing API key and stop on error flag
+     * @param request     {@link BulkTranscriptRequest} request object containing API key and stop on error flag
      * @return A map of video IDs to {@link TranscriptList} objects
      * @throws TranscriptRetrievalException If the retrieval of the transcript lists fails
      */
-    public Map<String, TranscriptList> listTranscriptsForChannel(String channelName, TranscriptRequest request) throws TranscriptRetrievalException {
+    public Map<String, TranscriptList> listTranscriptsForChannel(String channelName, BulkTranscriptRequest request) throws TranscriptRetrievalException {
         String channelPlaylistId = youtubeApi.fetchChannelPlaylistId(channelName, request.getApiKey());
         return listTranscriptsForPlaylist(channelPlaylistId, request);
     }
@@ -187,7 +182,7 @@ public class YoutubeTranscriptApi {
      * Retrieves transcript content for all videos for the specified channel.
      *
      * @param channelName   The name of the channel
-     * @param request       {@link TranscriptRequest} request object containing API key and stop on error flag
+     * @param request       {@link BulkTranscriptRequest} request object containing API key and stop on error flag
      * @param languageCodes A varargs list of language codes in descending priority.
      *                      <p>
      *                      For example:
@@ -197,7 +192,7 @@ public class YoutubeTranscriptApi {
      * @return A map of video IDs to {@link TranscriptContent} objects
      * @throws TranscriptRetrievalException If the retrieval of the transcript fails
      */
-    public Map<String, TranscriptContent> getTranscriptsForChannel(String channelName, TranscriptRequest request, String... languageCodes) throws TranscriptRetrievalException {
+    public Map<String, TranscriptContent> getTranscriptsForChannel(String channelName, BulkTranscriptRequest request, String... languageCodes) throws TranscriptRetrievalException {
         String channelPlaylistId = youtubeApi.fetchChannelPlaylistId(channelName, request.getApiKey());
         return getTranscriptsForPlaylist(channelPlaylistId, request, languageCodes);
     }
