@@ -172,7 +172,7 @@ class YoutubeApi {
         return sb.toString();
     }
 
-    String extractChannelId(String channelJson, String channelName) throws TranscriptRetrievalException {
+    private String extractChannelId(String channelJson, String channelName) throws TranscriptRetrievalException {
         JsonNode jsonNode = parseJson(channelJson);
         JsonNode channelId = jsonNode.get("items").get(0).get("snippet").get("channelId");
 
@@ -183,7 +183,7 @@ class YoutubeApi {
         return channelId.asText();
     }
 
-    List<String> extractVideoIds(String playlistJson) throws TranscriptRetrievalException {
+    private List<String> extractVideoIds(String playlistJson) throws TranscriptRetrievalException {
         JsonNode jsonNode = parseJson(playlistJson);
         List<String> videoIds = new ArrayList<>();
 
@@ -195,7 +195,7 @@ class YoutubeApi {
         return videoIds;
     }
 
-    String extractNextPageToken(String playlistJson) throws TranscriptRetrievalException {
+    private String extractNextPageToken(String playlistJson) throws TranscriptRetrievalException {
         JsonNode jsonNode = parseJson(playlistJson);
         JsonNode nextPageToken = jsonNode.get("nextPageToken");
 
@@ -206,7 +206,7 @@ class YoutubeApi {
         return nextPageToken.asText();
     }
 
-    String extractChannelPlaylistId(String channelJson) throws TranscriptRetrievalException {
+    private String extractChannelPlaylistId(String channelJson) throws TranscriptRetrievalException {
         JsonNode jsonNode = parseJson(channelJson);
         return jsonNode.get("items")
                 .get(0)
