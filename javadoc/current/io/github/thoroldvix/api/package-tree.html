@@ -26,7 +26,6 @@ loadScripts(document, 'script');</script>
 <div class="top-nav" id="navbar-top"><button id="navbar-toggle-button" aria-controls="navbar-top" aria-expanded="false" aria-label="Toggle navigation links"><span class="nav-bar-toggle-icon">&nbsp;</span><span class="nav-bar-toggle-icon">&nbsp;</span><span class="nav-bar-toggle-icon">&nbsp;</span></button>
 <div class="skip-nav"><a href="#skip-navbar-top" title="Skip navigation links">Skip navigation links</a></div>
 <ul id="navbar-top-firstrow" class="nav-list" title="Navigation">
-<li><a href="../../../../index.html">Overview</a></li>
 <li><a href="package-summary.html">Package</a></li>
 <li>Class</li>
 <li class="nav-bar-cell1-rev">Tree</li>
@@ -49,15 +48,12 @@ loadScripts(document, 'script');</script>
 <div class="header">
 <h1 class="title">Hierarchy For Package io.github.thoroldvix.api</h1>
 </div>
-<span class="package-hierarchy-label">Package Hierarchies:</span>
-<ul class="horizontal contents-list">
-<li><a href="../../../../overview-tree.html">All Packages</a></li>
-</ul>
 <section class="hierarchy">
 <h2 title="Class Hierarchy">Class Hierarchy</h2>
 <ul>
 <li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html" class="type-name-link external-link" title="class or interface in java.lang">Object</a>
 <ul>
+<li class="circle">io.github.thoroldvix.api.<a href="BulkTranscriptRequest.html" class="type-name-link" title="class in io.github.thoroldvix.api">BulkTranscriptRequest</a></li>
 <li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Throwable.html" class="type-name-link external-link" title="class or interface in java.lang">Throwable</a> (implements java.io.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link">Serializable</a>)
 <ul>
 <li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Exception.html" class="type-name-link external-link" title="class or interface in java.lang">Exception</a>
@@ -67,8 +63,13 @@ loadScripts(document, 'script');</script>
 </li>
 </ul>
 </li>
+<li class="circle">io.github.thoroldvix.api.<a href="Transcript.html" class="type-name-link" title="class in io.github.thoroldvix.api">Transcript</a></li>
+<li class="circle">io.github.thoroldvix.api.<a href="TranscriptApiFactory.html" class="type-name-link" title="class in io.github.thoroldvix.api">TranscriptApiFactory</a></li>
+<li class="circle">io.github.thoroldvix.api.<a href="TranscriptContent.html" class="type-name-link" title="class in io.github.thoroldvix.api">TranscriptContent</a></li>
+<li class="circle">io.github.thoroldvix.api.<a href="TranscriptContent.Fragment.html" class="type-name-link" title="class in io.github.thoroldvix.api">TranscriptContent.Fragment</a></li>
 <li class="circle">io.github.thoroldvix.api.<a href="TranscriptFormatters.html" class="type-name-link" title="class in io.github.thoroldvix.api">TranscriptFormatters</a></li>
-<li class="circle">io.github.thoroldvix.api.<a href="TranscriptRequest.html" class="type-name-link" title="class in io.github.thoroldvix.api">TranscriptRequest</a></li>
+<li class="circle">io.github.thoroldvix.api.<a href="TranscriptList.html" class="type-name-link" title="class in io.github.thoroldvix.api">TranscriptList</a> (implements java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Iterable.html" title="class or interface in java.lang" class="external-link">Iterable</a>&lt;T&gt;)</li>
+<li class="circle">io.github.thoroldvix.api.<a href="YoutubeTranscriptApi.html" class="type-name-link" title="class in io.github.thoroldvix.api">YoutubeTranscriptApi</a></li>
 </ul>
 </li>
 </ul>
@@ -76,31 +77,8 @@ loadScripts(document, 'script');</script>
 <section class="hierarchy">
 <h2 title="Interface Hierarchy">Interface Hierarchy</h2>
 <ul>
-<li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Iterable.html" class="type-name-link external-link" title="class or interface in java.lang">Iterable</a>&lt;T&gt;
-<ul>
-<li class="circle">io.github.thoroldvix.api.<a href="TranscriptList.html" class="type-name-link" title="interface in io.github.thoroldvix.api">TranscriptList</a></li>
-</ul>
-</li>
-<li class="circle">io.github.thoroldvix.api.<a href="Transcript.html" class="type-name-link" title="interface in io.github.thoroldvix.api">Transcript</a></li>
-<li class="circle">io.github.thoroldvix.api.<a href="TranscriptContent.html" class="type-name-link" title="interface in io.github.thoroldvix.api">TranscriptContent</a></li>
-<li class="circle">io.github.thoroldvix.api.<a href="TranscriptContent.Fragment.html" class="type-name-link" title="interface in io.github.thoroldvix.api">TranscriptContent.Fragment</a></li>
 <li class="circle">io.github.thoroldvix.api.<a href="TranscriptFormatter.html" class="type-name-link" title="interface in io.github.thoroldvix.api">TranscriptFormatter</a></li>
 <li class="circle">io.github.thoroldvix.api.<a href="YoutubeClient.html" class="type-name-link" title="interface in io.github.thoroldvix.api">YoutubeClient</a></li>
-<li class="circle">io.github.thoroldvix.api.<a href="YoutubeTranscriptApi.html" class="type-name-link" title="interface in io.github.thoroldvix.api">YoutubeTranscriptApi</a></li>
-</ul>
-</section>
-<section class="hierarchy">
-<h2 title="Enum Class Hierarchy">Enum Class Hierarchy</h2>
-<ul>
-<li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html" class="type-name-link external-link" title="class or interface in java.lang">Object</a>
-<ul>
-<li class="circle">java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Enum.html" class="type-name-link external-link" title="class or interface in java.lang">Enum</a>&lt;E&gt; (implements java.lang.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link">Comparable</a>&lt;T&gt;, java.lang.constant.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/constant/Constable.html" title="class or interface in java.lang.constant" class="external-link">Constable</a>, java.io.<a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html" title="class or interface in java.io" class="external-link">Serializable</a>)
-<ul>
-<li class="circle">io.github.thoroldvix.api.<a href="YtApiV3Endpoint.html" class="type-name-link" title="enum class in io.github.thoroldvix.api">YtApiV3Endpoint</a></li>
-</ul>
-</li>
-</ul>
-</li>
 </ul>
 </section>
 </main>
