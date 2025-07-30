@@ -1,6 +1,7 @@
 package io.github.thoroldvix.api;
 
 
+import java.util.Collections;
 import java.util.Map;
 
 
@@ -37,7 +38,7 @@ public interface YoutubeClient {
      * @throws TranscriptRetrievalException If the request to YouTube fails.
      */
     default String get(String url) throws TranscriptRetrievalException {
-        return get(url, Map.of());
+        return get(url, Collections.emptyMap());
     }
 }
 
