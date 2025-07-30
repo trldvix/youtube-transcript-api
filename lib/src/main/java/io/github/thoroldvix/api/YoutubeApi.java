@@ -174,13 +174,19 @@ class YoutubeApi {
 
     private String extractChannelId(String channelJson, String channelName) throws TranscriptRetrievalException {
         JsonNode jsonNode = parseJson(channelJson);
-        JsonNode channelId = jsonNode.get("items").get(0).get("snippet").get("channelId");
+        JsonNode channelItem = jsonNode.get("items").get(0).get("snippet");
+        String actualChannelName = channelItem.get("title").asText("");
 
-        if (channelId == null || channelId.isEmpty()) {
+        if (actualChannelName.isBlank() || !actualChannelName.equals(channelName)) {
+            throw new TranscriptRetrievalException("Could not find channel with the name: " + channelName + ". Closest match was: " + actualChannelName);
+        }
+
+        String channelId = channelItem.get("channelId").asText("");
+        if (channelId.isBlank()) {
             throw new TranscriptRetrievalException("Could not find channel id for the channel with the name: " + channelName);
         }
 
-        return channelId.asText();
+        return channelId;
     }
 
     private List<String> extractVideoIds(String playlistJson) throws TranscriptRetrievalException {
@@ -199,7 +205,7 @@ class YoutubeApi {
         JsonNode jsonNode = parseJson(playlistJson);
         JsonNode nextPageToken = jsonNode.get("nextPageToken");
 
-        if (nextPageToken == null || nextPageToken.isEmpty()) {
+        if (nextPageToken == null) {
             return "";
         }
 
