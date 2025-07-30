@@ -36,7 +36,7 @@ class TranscriptTest {
     }
 
     @Test
-    void fetchesTranscriptContent() throws Exception {
+    void fetch_shouldFetchTranscriptContent() throws Exception {
         String transcriptXml = Files.readString(Path.of("src/test/resources/transcript.xml"));
         when(youtubeApi.fetchTranscriptContentXml(VIDEO_ID, API_URL)).thenReturn(transcriptXml);
 
@@ -50,7 +50,16 @@ class TranscriptTest {
     }
 
     @Test
-    void translatesTranscript() throws Exception {
+    void fetch_shouldThrowException_whenYoutubeReturnsInvalidContentXml() throws Exception {
+        when(youtubeApi.fetchTranscriptContentXml(VIDEO_ID, API_URL)).thenReturn("invalid xml");
+
+        assertThatThrownBy(() -> transcript.fetch())
+                .isInstanceOf(TranscriptRetrievalException.class)
+                .hasMessageContaining("Failed to parse transcript content XML");
+    }
+
+    @Test
+    void translate_shouldTranslateTranscript() throws Exception {
         Transcript translatedTranscript = transcript.translate("af");
 
         assertThat(translatedTranscript.getLanguageCode()).isEqualTo("af");
@@ -58,13 +67,14 @@ class TranscriptTest {
     }
 
     @Test
-    void translateTranscriptTranslationLanguageNotAvailable() {
+    void translate_shouldThrowException_whenGivenLanguageCodeIsNotAvailable() {
         assertThatThrownBy(() -> transcript.translate("zz"))
-                .isInstanceOf(TranscriptRetrievalException.class);
+                .isInstanceOf(TranscriptRetrievalException.class)
+                .hasMessageContaining("is not available");
     }
 
     @Test
-    void isTranslatableGivesCorrectResult() {
+    void isTranslatable_shouldReturnCorrectResult() {
         Transcript notTranslatableTranscript = new Transcript(
                 youtubeApi,
                 VIDEO_ID,
@@ -79,7 +89,7 @@ class TranscriptTest {
     }
 
     @Test
-    void translateTranscriptThrowsExceptionWhenNotTranslatable() {
+    void translate_shouldThrowException_whenTranscriptIsNotTranslatable() {
         Transcript transcript = new Transcript(
                 youtubeApi,
                 VIDEO_ID,
@@ -90,12 +100,14 @@ class TranscriptTest {
                 Collections.emptyMap()
         );
 
+        assertThat(transcript.isTranslatable()).isFalse();
         assertThatThrownBy(() -> transcript.translate("af"))
-                .isInstanceOf(TranscriptRetrievalException.class);
+                .isInstanceOf(TranscriptRetrievalException.class)
+                .hasMessageContaining("transcript is not translatable");
     }
 
     @Test
-    void toStringFormattedCorrectly() {
+    void toString_shouldBeFormattedCorrectly() {
         Transcript transcript = new Transcript(
                 youtubeApi,
                 VIDEO_ID,

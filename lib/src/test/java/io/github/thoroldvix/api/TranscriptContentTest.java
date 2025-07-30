@@ -21,7 +21,7 @@ public class TranscriptContentTest {
     }
 
     @Test
-    void toStringFormattedCorrectly() {
+    void toString_shouldBeFormattedCorrectly() {
         String expected = """
                 content=[{text='Hey, this is just a test', start=0.0, dur=1.54},\
                  {text='this is not the original transcript', start=1.54, dur=4.16},\

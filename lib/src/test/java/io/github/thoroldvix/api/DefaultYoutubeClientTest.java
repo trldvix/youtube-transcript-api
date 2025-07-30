@@ -28,7 +28,6 @@ class DefaultYoutubeClientTest {
 
     private static final String VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
     private static final Map<String, String> HEADERS = Map.of("Accept-Language", "en-US");
-    private static final Map<String, String> PARAMS = Map.of("key", "test", "part", "snippet");
     @Mock
     private HttpResponse<String> response;
     @Mock
@@ -66,7 +65,7 @@ class DefaultYoutubeClientTest {
 
     @ParameterizedTest
     @ValueSource(ints = {500, 404})
-    void getThrowsExceptionIfResponseIsNotOk(int statusCode) throws Exception {
+    void get_shouldThrowException_whenStatusCodeIsNotOk(int statusCode) throws Exception {
         when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandlers.ofString().getClass()))).thenReturn(response);
         when(response.statusCode()).thenReturn(statusCode);
 
@@ -75,7 +74,7 @@ class DefaultYoutubeClientTest {
     }
 
     @Test
-    void getThrowsExceptionWhenIOExceptionOccurs() throws Exception {
+    void get_shouldThrowException_whenIOExceptionOccurs() throws Exception {
         when(httpClient.send(any(), any())).thenThrow(new IOException());
 
         assertThatThrownBy(() -> youtubeClient.get(VIDEO_URL, HEADERS))
@@ -83,7 +82,7 @@ class DefaultYoutubeClientTest {
     }
 
     @Test
-    void getThrowsExceptionWhenInterruptedExceptionOccurs() throws Exception {
+    void get_shouldThrowException_whenInterruptedExceptionOccurs() throws Exception {
         when(httpClient.send(any(), any())).thenThrow(new InterruptedException());
 
         assertThatThrownBy(() -> youtubeClient.get(VIDEO_URL, HEADERS))
