@@ -292,8 +292,8 @@ public class OkHttpYoutubeClient implements YoutubeClient {
     }
 
     @Override
-    public String post(String url, String body) throws TranscriptRetrievalException {
-        RequestBody requestBody = RequestBody.create(body, MediaType.parse("application/json; charset=utf-8"));
+    public String post(String url, String json) throws TranscriptRetrievalException {
+        RequestBody requestBody = RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"));
 
         Request request = new Request.Builder()
                 .url(url)
