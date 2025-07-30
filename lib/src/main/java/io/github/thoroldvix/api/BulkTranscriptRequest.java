@@ -8,11 +8,11 @@ package io.github.thoroldvix.api;
  * Also contains a flag to stop on error or continue on error. Defaults to false if not provided.
  * </p>
  */
-public class TranscriptRequest {
+public class BulkTranscriptRequest {
     private final String apiKey;
     private final boolean stopOnError;
 
-    public TranscriptRequest(String apiKey, boolean stopOnError) {
+    public BulkTranscriptRequest(String apiKey, boolean stopOnError) {
         if (apiKey.isBlank()) {
             throw new IllegalArgumentException("API key cannot be empty");
         }
@@ -20,7 +20,7 @@ public class TranscriptRequest {
         this.stopOnError = stopOnError;
     }
 
-    public TranscriptRequest(String apiKey) {
+    public BulkTranscriptRequest(String apiKey) {
         this(apiKey, true);
     }
 
