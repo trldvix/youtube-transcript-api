@@ -94,7 +94,7 @@ class YoutubeApi {
         }
 
         if (videoPageHtml.contains("class=\"g-recaptcha\"")) {
-            throw new TranscriptRetrievalException(videoId, "YouTube is receiving too many requests from this IP and now requires solving a captcha to continue.");
+            throw new TranscriptRetrievalException(videoId, "Cannot retrieve video page, captcha detected. Try changing your IP address.");
         }
 
         return videoPageHtml;
