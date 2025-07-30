@@ -1,7 +1,6 @@
-package io.github.thoroldvix.internal;
+package io.github.thoroldvix.api;
 
-import io.github.thoroldvix.api.TranscriptContent;
-import io.github.thoroldvix.internal.DefaultTranscriptContent.Fragment;
+import io.github.thoroldvix.api.TranscriptContent.Fragment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,16 +8,16 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultTranscriptContentTest {
+public class TranscriptContentTest {
 
     private TranscriptContent transcriptContent;
 
     @BeforeEach
     void setUp() {
-        List<Fragment> fragments = List.of(new DefaultTranscriptContent.Fragment("Hey, this is just a test", 0.0, 1.54),
-                new DefaultTranscriptContent.Fragment("this is not the original transcript", 1.54, 4.16),
-                new DefaultTranscriptContent.Fragment("test & test, like this \"test\" he's testing", 5.7, 3.239));
-        transcriptContent = new DefaultTranscriptContent(fragments);
+        List<Fragment> fragments = List.of(new TranscriptContent.Fragment("Hey, this is just a test", 0.0, 1.54),
+                new TranscriptContent.Fragment("this is not the original transcript", 1.54, 4.16),
+                new TranscriptContent.Fragment("test & test, like this \"test\" he's testing", 5.7, 3.239));
+        transcriptContent = new TranscriptContent(fragments);
     }
 
     @Test

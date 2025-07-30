@@ -1,19 +1,20 @@
-package io.github.thoroldvix.internal;
+package io.github.thoroldvix.api;
 
-import io.github.thoroldvix.api.Transcript;
-import io.github.thoroldvix.api.TranscriptList;
-import io.github.thoroldvix.api.TranscriptRetrievalException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
-class DefaultTranscriptListTest {
+class TranscriptListTest {
 
     private TranscriptList transcriptList;
 
@@ -26,18 +27,19 @@ class DefaultTranscriptListTest {
         Map<String, Transcript> generatedTranscripts = Map.of(
                 "en", createTranscript("English", "en", true)
         );
-        transcriptList = new DefaultTranscriptList("dQw4w9WgXcQ", manualTranscripts, generatedTranscripts, Map.of("af", "Afrikaans"));
+        transcriptList = new TranscriptList("dQw4w9WgXcQ", manualTranscripts, generatedTranscripts, Map.of("af", "Afrikaans"));
     }
 
     private Transcript createTranscript(String language, String languageCode, boolean isGenerated) {
-        return new DefaultTranscript(
-                null,
+        YoutubeApi youtubeApi = mock(YoutubeApi.class);
+        return new Transcript(
+                youtubeApi,
                 "dQw4w9WgXcQ",
-                null,
+                "test",
                 language,
                 languageCode,
                 isGenerated,
-                null);
+                Collections.emptyMap());
     }
 
     @Test
@@ -108,7 +110,7 @@ class DefaultTranscriptListTest {
 
     @Test
     void findManuallyCreatedNoCodeUsesEnglish() throws Exception {
-        TranscriptList transcriptList = new DefaultTranscriptList("dQw4w9WgXcQ",
+        TranscriptList transcriptList = new TranscriptList("dQw4w9WgXcQ",
                 Map.of("en", createTranscript("English", "en", false),
                         "de", createTranscript("Deutsch", "de", false)),
                 Map.of(),
@@ -140,7 +142,7 @@ class DefaultTranscriptListTest {
 
     @Test
     void findGeneratedNoCodeUsesEnglish() throws Exception {
-        TranscriptList transcriptList = new DefaultTranscriptList("dQw4w9WgXcQ",
+        TranscriptList transcriptList = new TranscriptList("dQw4w9WgXcQ",
                 Map.of(),
                 Map.of("en", createTranscript("English", "en", true),
                         "de", createTranscript("Deutsch", "de", true)),
@@ -167,7 +169,7 @@ class DefaultTranscriptListTest {
                 "af", createTranscript("Afrikaans", "af", true),
                 "cs", createTranscript("Czech", "cs", true));
         Map<String, String> translationLanguages = Map.of("en", "English", "de", "Deutsch");
-        TranscriptList transcriptList = new DefaultTranscriptList(
+        TranscriptList transcriptList = new TranscriptList(
                 "dQw4w9WgXcQ",
                 manualTranscripts,
                 generatedTranscripts,

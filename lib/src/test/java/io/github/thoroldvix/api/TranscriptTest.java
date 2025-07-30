@@ -1,10 +1,5 @@
-package io.github.thoroldvix.internal;
+package io.github.thoroldvix.api;
 
-import io.github.thoroldvix.api.Transcript;
-import io.github.thoroldvix.api.TranscriptContent;
-import io.github.thoroldvix.api.TranscriptRetrievalException;
-import io.github.thoroldvix.api.YoutubeClient;
-import org.apiguardian.api.API;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class DefaultTranscriptTest {
+class TranscriptTest {
 
     private YoutubeApi youtubeApi;
     private Transcript transcript;
@@ -29,7 +24,7 @@ class DefaultTranscriptTest {
     @BeforeEach
     void setUp() {
         youtubeApi = mock(YoutubeApi.class);
-        transcript = new DefaultTranscript(
+        transcript = new Transcript(
                 youtubeApi,
                 VIDEO_ID,
                 API_URL,
@@ -43,11 +38,11 @@ class DefaultTranscriptTest {
     @Test
     void fetchesTranscriptContent() throws Exception {
         String transcriptXml = Files.readString(Path.of("src/test/resources/transcript.xml"));
-        when(youtubeApi.getTranscriptContentXml(VIDEO_ID, API_URL)).thenReturn(transcriptXml);
+        when(youtubeApi.fetchTranscriptContentXml(VIDEO_ID, API_URL)).thenReturn(transcriptXml);
 
-        List<DefaultTranscriptContent.Fragment> expected = List.of(new DefaultTranscriptContent.Fragment("Hey, this is just a test", 0.0, 1.54),
-                new DefaultTranscriptContent.Fragment("this is not the original transcript", 1.54, 4.16),
-                new DefaultTranscriptContent.Fragment("test & test, like this \"test\" he's testing", 5.7, 3.239));
+        List<TranscriptContent.Fragment> expected = List.of(new TranscriptContent.Fragment("Hey, this is just a test", 0.0, 1.54),
+                new TranscriptContent.Fragment("this is not the original transcript", 1.54, 4.16),
+                new TranscriptContent.Fragment("test & test, like this \"test\" he's testing", 5.7, 3.239));
 
         TranscriptContent actual = transcript.fetch();
 
@@ -70,7 +65,7 @@ class DefaultTranscriptTest {
 
     @Test
     void isTranslatableGivesCorrectResult() {
-        Transcript notTranslatableTranscript = new DefaultTranscript(
+        Transcript notTranslatableTranscript = new Transcript(
                 youtubeApi,
                 VIDEO_ID,
                 API_URL,
@@ -85,7 +80,7 @@ class DefaultTranscriptTest {
 
     @Test
     void translateTranscriptThrowsExceptionWhenNotTranslatable() {
-        Transcript transcript = new DefaultTranscript(
+        Transcript transcript = new Transcript(
                 youtubeApi,
                 VIDEO_ID,
                 API_URL,
@@ -101,7 +96,7 @@ class DefaultTranscriptTest {
 
     @Test
     void toStringFormattedCorrectly() {
-        Transcript transcript = new DefaultTranscript(
+        Transcript transcript = new Transcript(
                 youtubeApi,
                 VIDEO_ID,
                 API_URL,

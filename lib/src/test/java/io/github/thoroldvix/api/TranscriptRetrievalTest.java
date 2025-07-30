@@ -1,10 +1,7 @@
-package io.github.thoroldvix.internal;
+package io.github.thoroldvix.api;
 
-import io.github.thoroldvix.api.YoutubeClient;
-import io.github.thoroldvix.api.YoutubeTranscriptApi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.Mockito.mock;
@@ -20,6 +17,6 @@ abstract class TranscriptRetrievalTest {
     @BeforeEach
     void setUp() {
         client = mock(YoutubeClient.class);
-        youtubeTranscriptApi = new DefaultYoutubeTranscriptApi(client);
+        youtubeTranscriptApi = new YoutubeTranscriptApi(client);
     }
 }
