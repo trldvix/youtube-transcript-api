@@ -2,7 +2,7 @@
 
 ![Java CI](https://github.com/thoroldvix/youtube-transcript-api/actions/workflows/ci.yml/badge.svg)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.thoroldvix/youtube-transcript-api)](https://search.maven.org/artifact/io.github.thoroldvix/youtube-transcript-api)
-[![Javadoc](https://img.shields.io/badge/JavaDoc-Online-green)](https://thoroldvix.github.io/youtube-transcript-api/javadoc/)
+[![Javadoc](https://img.shields.io/badge/JavaDoc-Online-green)](https://trldvix.github.io/youtube-transcript-api/javadoc/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## ⚠️WARNING ⚠️
