@@ -1,5 +1,0 @@
-# Netscape HTTP Cookie File
-# http://curl.haxx.se/rfc/cookie_spec.html
-# This is a generated file!  Do not edit.
-
-.example.com	TRUE	/	TRUE	3594431874	TEST_FIELD	TEST_VALUE

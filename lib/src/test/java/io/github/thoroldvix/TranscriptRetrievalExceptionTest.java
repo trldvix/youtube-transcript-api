@@ -9,9 +9,10 @@ class TranscriptRetrievalExceptionTest {
 
     @Test
     void exceptionMessageBuiltCorrectly() {
-        TranscriptRetrievalException exception = new TranscriptRetrievalException("dQw4w9WgXcQ", "Cause");
+        String videoId = "dQw4w9WgXcQ";
+        TranscriptRetrievalException exception = new TranscriptRetrievalException(videoId, "Cause");
 
-        String expected = "Could not retrieve transcript for the video: https://www.youtube.com/watch?v=dQw4w9WgXcQ.\nReason: Cause";
+        String expected = "Could not retrieve transcript for the video: https://www.youtube.com/watch?v=%s.\nReason: Cause".formatted(videoId);
 
         String actual = exception.getMessage();
 

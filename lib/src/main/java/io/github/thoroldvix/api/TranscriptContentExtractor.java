@@ -1,11 +1,9 @@
-package io.github.thoroldvix.internal;
+package io.github.thoroldvix.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import io.github.thoroldvix.api.TranscriptContent;
-import io.github.thoroldvix.api.TranscriptRetrievalException;
-import io.github.thoroldvix.internal.DefaultTranscriptContent.Fragment;
+import io.github.thoroldvix.api.TranscriptContent.Fragment;
 import org.apache.commons.text.StringEscapeUtils;
 
 import java.util.List;
@@ -17,26 +15,24 @@ import java.util.stream.Collectors;
  */
 final class TranscriptContentExtractor {
 
-    private final String videoId;
     private static final XmlMapper XML_MAPPER = new XmlMapper();
 
-    TranscriptContentExtractor(String videoId) {
-        this.videoId = videoId;
+    private TranscriptContentExtractor() {
     }
 
     private static List<Fragment> formatFragments(List<Fragment> fragments) {
         return fragments.stream()
-                .filter(TranscriptContentExtractor::isValidTranscriptFragment)
                 .map(TranscriptContentExtractor::removeHtmlTags)
                 .map(TranscriptContentExtractor::unescapeXmlTags)
                 .collect(Collectors.toList());
     }
 
-    TranscriptContent extract(String xml) throws TranscriptRetrievalException {
-        List<Fragment> fragments = parseFragments(xml);
+    static TranscriptContent extract(String videoId, String xml) throws TranscriptRetrievalException {
+        List<Fragment> fragments = parseFragments(videoId, xml).stream()
+                .filter(TranscriptContentExtractor::isValidTranscriptFragment)
+                .collect(Collectors.toList());
         List<Fragment> content = formatFragments(fragments);
-
-        return new DefaultTranscriptContent(content);
+        return new TranscriptContent(content);
     }
 
     private static Fragment unescapeXmlTags(Fragment fragment) {
@@ -50,11 +46,13 @@ final class TranscriptContentExtractor {
         return new Fragment(text, fragment.getStart(), fragment.getDur());
     }
 
+    @SuppressWarnings("ConstantConditions")
     private static boolean isValidTranscriptFragment(Fragment fragment) {
-        return fragment.getText() != null && !fragment.getText().isBlank();
+        String text = fragment.getText();
+        return text != null && !text.isBlank();
     }
 
-    private List<Fragment> parseFragments(String xml) throws TranscriptRetrievalException {
+    private static List<Fragment> parseFragments(String videoId, String xml) throws TranscriptRetrievalException {
         try {
             return XML_MAPPER.readValue(xml, new TypeReference<>() {
             });

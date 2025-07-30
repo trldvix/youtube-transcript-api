@@ -1,15 +1,9 @@
-package io.github.thoroldvix.internal;
-
-import io.github.thoroldvix.api.YoutubeClient;
-import io.github.thoroldvix.api.YoutubeTranscriptApi;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
+package io.github.thoroldvix.api;
 
 /**
  * Responsible for creating instances of {@link YoutubeTranscriptApi}.
  */
-public final class TranscriptApiFactory {
+public class TranscriptApiFactory {
 
     private TranscriptApiFactory() {
     }
@@ -30,6 +24,6 @@ public final class TranscriptApiFactory {
      * @return A new instance of {@link YoutubeTranscriptApi}
      */
     public static YoutubeTranscriptApi createWithClient(YoutubeClient client) {
-        return new DefaultYoutubeTranscriptApi(client, filePath -> Files.readAllLines(Path.of(filePath)));
+        return new YoutubeTranscriptApi(client);
     }
 }
