@@ -66,7 +66,7 @@ public class YoutubeTranscriptApi {
      */
     public TranscriptList listTranscripts(String videoId) throws TranscriptRetrievalException {
         if (!videoId.matches("[a-zA-Z0-9_-]{11}")) {
-            throw new IllegalArgumentException("Invalid video id: " + videoId);
+            throw new IllegalArgumentException("Invalid video ID: " + videoId);
         }
         String innertubeData = youtubeApi.fetchInnertubeData(videoId);
         return transcriptListExtractor.extract(videoId, innertubeData);
