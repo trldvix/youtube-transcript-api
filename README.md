@@ -344,7 +344,7 @@ Playlists and channels information are retrieved from
 the [YouTube V3 API](https://developers.google.com/youtube/v3/docs/),
 so you will need to provide an API key for all methods.
 
-All methods take a `TranscriptRequest` object as a parameter,
+All methods take a `BulkTranscriptRequest` object as a parameter,
 which contains the following fields:
 
 - `apiKey` - YouTube API key.
@@ -359,7 +359,7 @@ All methods return a map which contains the video ID as a key and the correspond
 YoutubeTranscriptApi youtubeTranscriptApi = TranscriptApiFactory.createDefault();
 
 //Create request object
-TranscriptRequest request = new TranscriptRequest("apiKey");
+BulkTranscriptRequest request = new BulkTranscriptRequest("apiKey");
 
 // Retrieve all available transcripts for a given playlist
 Map<String, TranscriptList> transcriptLists = youtubeTranscriptApi.listTranscriptsForPlaylist("playlistId", request);
@@ -373,7 +373,7 @@ using [fallback languages](#use-fallback-language) if needed.
 
 ```java
 //Create request object
-TranscriptRequest request = new TranscriptRequest("apiKey");
+BulkTranscriptRequest request = new BulkTranscriptRequest("apiKey");
 
 // Retrieve transcript content for all videos in a playlist
 Map<String, TranscriptContent> transcriptLists = youtubeTranscriptApi.getTranscriptsForPlaylist("playlistId", request);
